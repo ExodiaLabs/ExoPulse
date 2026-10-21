@@ -1,7 +1,66 @@
 {% extends 'base.html.twig' %}
 {% block title %}Configurer une connexion{% endblock %}
 {% block page_title %}{{ connection ? 'Modifier la connexion' : 'Nouvelle connexion' }}{% endblock %}
+{% block page_subtitle %}Définissez une source Git, son accès sécurisé et les repositories à surveiller.{% endblock %}
+{% macro field(field, help, label = null) %}
+    {{ form_row(field, {row_attr:{class:'min-w-0'},label_attr:{class:'mb-2 block text-sm font-semibold'},attr:{class:'exo-input'},help:help,label:label ?? field.vars.label}) }}
+{% endmacro %}
 {% block body %}
-<section class="exo-card max-w-3xl p-6">
-<p class="mb-5 text-sm text-muted">Le jeton est chiffré et ne sera jamais réaffiché. Utilisez uniquement les permissions nécessaires aux repositories autorisés.</p>{{ form_start(form) }}{{ form_errors(form) }}{{ form_widget(form) }}<button type="submit" class="exo-btn mt-5">Enregistrer la connexion</button>{{ form_end(form) }}</section>
+    <div class="grid items-start gap-6 xl:grid-cols-3">
+        <section class="exo-card p-5 sm:p-7 xl:col-span-2" aria-label="Configuration de la connexion">
+            {{ form_start(form) }}
+            {{ form_errors(form) }}
+            <fieldset class="exo-fieldset">
+                <legend class="exo-section-heading">01 · Identifier la plateforme</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Un nom reconnaissable pour retrouver cette source dans tout votre parc.</p>
+                <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
+                    <div class="sm:col-span-2">{{ _self.field(form.name, 'Par exemple : GitLab équipe produit ou GitHub organisation.') }}</div>
+                    {{ _self.field(form.provider, 'Le fournisseur ne pourra plus être changé après création.') }}
+                    {{ _self.field(form.baseUrl, 'Adresse HTTPS de l’instance. L’hôte doit être autorisé par votre administrateur.') }}
+                </div>
+                {% if connection %}<p class="mt-4 rounded-lg border border-line bg-canvas p-3 text-sm text-muted">Le fournisseur et l’instance sont immuables. Créez une autre connexion pour changer de plateforme.</p>{% endif %}
+            </fieldset>
+
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
+                <legend class="exo-section-heading">02 · Sécuriser l’accès</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Le jeton est chiffré et ne sera jamais réaffiché. Utilisez uniquement les permissions nécessaires aux repositories autorisés.</p>
+                {{ _self.field(form.token, connection ? 'Laissez ce champ vide pour conserver le jeton actuel. Renseignez un nouveau jeton uniquement pour le remplacer.' : 'Fournissez un jeton permettant la lecture des repositories sélectionnés. La création d’issues nécessite un droit supplémentaire.', 'Jeton d’accès') }}
+            </fieldset>
+
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
+                <legend class="exo-section-heading">03 · Choisir le périmètre</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Limitez la découverte aux applications qui vous concernent. Séparez les différentes valeurs par des virgules.</p>
+                <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
+                    <div class="sm:col-span-2">{{ _self.field(form.organizations, 'Organisations GitHub ou chemins de groupes GitLab. Un champ vide autorise tous les repositories accessibles au jeton.') }}</div>
+                    {{ _self.field(form.includedRepositories, 'Motifs de chemins à inclure, par exemple : equipe/api-*. Vide : tous les repositories du périmètre.') }}
+                    {{ _self.field(form.excludedRepositories, 'Motifs à exclure. Les exclusions sont prioritaires sur les inclusions.') }}
+                    <div class="sm:col-span-2">{{ _self.field(form.branch, 'Vide : branche par défaut de chaque repository. Vous pouvez sélectionner plusieurs branches.') }}</div>
+                </div>
+                {% if connection %}<p class="mt-4 text-sm text-muted">Modifier les organisations suspend la surveillance des repositories déjà importés jusqu’à une nouvelle synchronisation.</p>{% endif %}
+            </fieldset>
+
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
+                <legend class="exo-section-heading">04 · Planifier la synchronisation</legend>
+                <div class="exo-form-grid mt-4 grid items-start gap-5 sm:grid-cols-2">
+                    {{ _self.field(form.frequencyHours, 'De 1 à 720 heures. La fréquence des analyses se règle séparément dans les paramètres.') }}
+                    <div class="rounded-lg border border-line bg-canvas p-4">{{ form_row(form.active) }}<p class="mt-2 text-sm text-muted">Une connexion désactivée conserve son historique et ne lance plus de nouveaux traitements.</p></div>
+                </div>
+            </fieldset>
+            <div class="mt-7 flex flex-wrap items-center gap-3 border-t border-line pt-6">
+                <button type="submit" class="exo-btn">Enregistrer la connexion</button>
+                <a class="exo-btn exo-btn-alt" href="{{ connection ? path('app_connection',{id:connection.id}) : path('app_connections') }}">Annuler</a>
+            </div>
+            {{ form_end(form) }}
+        </section>
+        <aside class="exo-card p-6" aria-label="Avant de commencer">
+            <p class="exo-kicker">ACCÈS MAÎTRISÉ</p>
+            <h2 class="exo-section-heading mt-2">Une connexion, un périmètre</h2>
+            <ul class="mt-5 space-y-4 text-sm leading-relaxed text-muted">
+                <li><strong class="text-ink">Permissions minimales.</strong> Réservez les droits d’écriture aux connexions qui doivent créer des issues.</li>
+                <li><strong class="text-ink">Secrets protégés.</strong> Le jeton reste côté serveur et ne figure jamais dans les pages de consultation.</li>
+                <li><strong class="text-ink">Analyse statique.</strong> ExoPulse lit les manifests et les fichiers de configuration ; le code de vos applications n’est pas exécuté.</li>
+            </ul>
+            <p class="mt-6 border-t border-line pt-4 text-sm text-muted">Après l’enregistrement, testez la connexion puis lancez une synchronisation depuis sa fiche.</p>
+        </aside>
+    </div>
 {% endblock %}

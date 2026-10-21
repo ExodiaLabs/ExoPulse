@@ -1,8 +1,56 @@
 {% extends 'base.html.twig' %}
 {% block title %}Paramètres{% endblock %}
 {% block page_title %}Paramètres des analyses{% endblock %}
+{% block page_subtitle %}Ajustez la fréquence, la confidentialité et les critères de santé de votre parc.{% endblock %}
+{% macro field(field, help) %}
+    {{ form_row(field, {row_attr:{class:'min-w-0'},label_attr:{class:'mb-2 block text-sm font-semibold'},attr:{class:'exo-input'},help:help}) }}
+{% endmacro %}
 {% block body %}
-<section class="exo-card max-w-3xl p-6">
-<h2 class="mb-3 font-bold">Score et fraîcheur des analyses</h2>
-<p class="mb-5 text-sm text-muted">Le score part de 100 et déduit les pénalités configurées pour les constats confirmés, dans la limite de 0. Les informations inconnues n’ajoutent aucune pénalité. Couverture et confiance sont affichées séparément.</p>{{ form_start(form) }}{{ form_errors(form) }}{{ form_widget(form) }}<button type="submit" class="exo-btn mt-5">Enregistrer les paramètres</button>{{ form_end(form) }}</section>
+    <div class="grid items-start gap-6 xl:grid-cols-3">
+        <section class="exo-card p-5 sm:p-7 xl:col-span-2" aria-label="Réglages des analyses">
+            {{ form_start(form) }}
+            {{ form_errors(form) }}
+            <fieldset class="exo-fieldset">
+                <legend class="exo-section-heading">Rythme et conservation</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Des résultats réguliers, suffisamment récents et un historique conservé selon vos besoins.</p>
+                <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
+                    {{ _self.field(form.frequencyHours, 'De 1 à 720 heures. S’applique aux analyses planifiées des applications actives.') }}
+                    {{ _self.field(form.staleDays, 'De 1 à 365 jours. Au-delà, le score reste historique et l’application est marquée « À actualiser ».') }}
+                    <div class="sm:col-span-2">{{ _self.field(form.retentionDays, 'De 1 à 3 650 jours. La purge de l’historique reste une opération manuelle ; les résultats courants sont conservés.') }}</div>
+                </div>
+            </fieldset>
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
+                <legend class="exo-section-heading">Confidentialité des catalogues</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Choisissez explicitement si les informations de dépendances peuvent être enrichies à partir de sources publiques.</p>
+                {{ _self.field(form.externalEnrichment, form.externalEnrichment.vars.help) }}
+                <p class="mt-4 rounded-lg border border-line bg-canvas p-4 text-sm text-muted">Sans enrichissement externe, l’inventaire statique reste disponible. Les versions récentes et les cycles de vie non vérifiés sont signalés comme inconnus.</p>
+            </fieldset>
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
+                <legend class="exo-section-heading">Pondération du score</legend>
+                <p class="mb-5 text-sm leading-relaxed text-muted">Définissez la pénalité de chaque constat confirmé, entre 0 et 100 points.</p>
+                <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
+                    {{ _self.field(form.end_of_support, 'Technologie ne recevant plus de support, y compris les correctifs de sécurité.') }}
+                    {{ _self.field(form.end_of_maintenance, 'Technologie sortie de la maintenance active, encore distincte d’une fin de support complète.') }}
+                    {{ _self.field(form.major, 'Une nouvelle version majeure est disponible. Vérifiez sa compatibilité avant migration.') }}
+                    {{ _self.field(form.minor, 'Une nouvelle version mineure est disponible.') }}
+                    {{ _self.field(form.patch, 'Une nouvelle version corrective est disponible.') }}
+                </div>
+            </fieldset>
+            <div class="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+                <p class="max-w-sm text-xs leading-relaxed text-muted">Les réglages s’appliquent aux prochains traitements. Les résultats historiques restent conservés.</p>
+                <button type="submit" class="exo-btn">Enregistrer les paramètres</button>
+            </div>
+            {{ form_end(form) }}
+        </section>
+        <aside class="exo-card p-6" aria-label="Comprendre les indicateurs">
+            <p class="exo-kicker">UN SCORE EXPLICABLE</p>
+            <h2 class="exo-section-heading mt-2">Trois repères, une lecture claire</h2>
+            <dl class="mt-5 space-y-5 text-sm">
+                <div><dt class="font-bold">Score de santé</dt><dd class="mt-2 leading-relaxed text-muted">Le score part de 100 et déduit les pénalités configurées pour les constats confirmés, dans la limite de 0. Les informations inconnues n’ajoutent aucune pénalité.</dd></div>
+                <div class="border-t border-line pt-4"><dt class="font-bold">Confiance</dt><dd class="mt-2 leading-relaxed text-muted">Elle indique dans quelle mesure les informations ont pu être vérifiées. Une information indisponible ne devient pas une anomalie par défaut.</dd></div>
+                <div class="border-t border-line pt-4"><dt class="font-bold">Couverture</dt><dd class="mt-2 leading-relaxed text-muted">Elle renseigne sur les éléments effectivement analysés. Un résultat partiel reste identifiable dans l’historique.</dd></div>
+            </dl>
+            <p class="mt-6 rounded-lg border border-line bg-canvas p-4 text-sm text-muted">L’obsolescence ne constitue pas une vulnérabilité confirmée. Le score aide à prioriser ; il ne remplace pas une analyse de sécurité.</p>
+        </aside>
+    </div>
 {% endblock %}

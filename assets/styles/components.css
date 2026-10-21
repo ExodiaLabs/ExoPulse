@@ -40,7 +40,7 @@
   .exo-main { width: 100%; max-width: 1440px; margin-inline: auto; }
   .exo-page-header { padding-block: .35rem 1.3rem; border-bottom: 1px solid var(--exo-border); }
   .exo-page-header h1 { letter-spacing: -.035em; line-height: 1.2; overflow-wrap: anywhere; }
-  .exo-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+  .exo-section-heading { font-weight: 750; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
   .exo-section-heading h2 { font-size: 1rem; font-weight: 750; letter-spacing: -.015em; }
   .exo-kicker { font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .1em; color: var(--exo-muted); }
   .exo-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; border-radius: 2rem; background: color-mix(in srgb, currentColor 9%, transparent); font-size: .75rem; font-weight: 650; }
@@ -58,6 +58,7 @@
   .exo-fieldset label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 650; }
   .exo-fieldset input:not([type="checkbox"]):not([type="hidden"]), .exo-fieldset select, .exo-fieldset textarea { display: block; width: 100%; background: var(--exo-card); color: var(--exo-text); border: 1px solid var(--exo-border); border-radius: var(--radius-control); padding: .7rem .8rem; }
   .exo-fieldset .help-text, .exo-fieldset .help, .exo-fieldset p { font-size: .8rem; line-height: 1.6; color: var(--exo-muted); }
+  .exo-fieldset .help-text, .exo-fieldset .help { margin-top: .45rem; }
   .exo-fieldset ul { color: var(--exo-danger); font-size: .875rem; }
   .exo-fieldset input[type="checkbox"] { accent-color: #7960A6; width: 1rem; height: 1rem; margin-right: .5rem; }
   .exo-input { min-height: 2.75rem; }

@@ -1,33 +1,63 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ connection.name }}{% endblock %}
 {% block page_title %}{{ connection.name }}{% endblock %}
+{% block page_subtitle %}Configuration, accès et suivi des synchronisations de cette plateforme.{% endblock %}
 {% block body %}
-<section class="exo-card mb-5 p-5">
-<p>{{ connection.provider }} · {{ connection.baseUrl }}</p>
-<p class="mt-2 text-sm text-muted">{{ connection.active ? 'Active' : 'Désactivée' }} · {{ connection.status }} · Synchronisation toutes les {{ connection.frequencyHours }} heures</p>
-<p class="mt-2 text-sm text-muted">Dernière synchronisation : {{ connection.lastSyncedAt ? connection.lastSyncedAt|date('d/m/Y H:i') : 'Jamais' }}</p>
-<p class="mt-2 text-sm text-muted">Organisations : {{ connection.organizations|join(', ') ?: 'Toutes les organisations accessibles' }}</p>
-{% if connection.lastError %}
-<p class="mt-3 text-danger" role="alert">{{ connection.lastError }}</p>
-{% endif %}
-<div class="mt-5 flex flex-wrap gap-3">
-<a class="exo-btn exo-btn-alt" href="{{ path('app_connection_update',{id:connection.id}) }}">Modifier</a>
-{% for action,label in {test:'Tester la connexion',sync:'Synchroniser',disable:'Désactiver'} %}
-<form method="post" action="{{ path('app_connection_'~action,{id:connection.id}) }}">
-<input type="hidden" name="_token" value="{{ csrf_token(action~'-'~connection.id) }}">
-<button class="exo-btn exo-btn-alt">{{ label }}</button>
-</form>
-{% endfor %}</div>
-</section>
-<section class="exo-card p-5">
-<h2 class="mb-4 font-bold">Historique de synchronisation</h2>
-{% for job in jobs %}
-<article class="border-t border-line py-3">
-<p>{{ job.createdAt|date('d/m/Y H:i') }} · {{ job.status }} · {{ job.processed }} traité(s), {{ job.failed }} échec(s)</p>
-{% if job.lastError %}
-<p class="text-sm text-danger">{{ job.lastError }}</p>
-{% endif %}</article>
-{% else %}
-<p class="text-muted">Aucune synchronisation lancée.</p>
-{% endfor %}</section>
+    {% set states = {untested:'À vérifier',connected:'Connexion vérifiée',failed:'Échec de connexion',error:'Erreur de synchronisation',syncing:'Synchronisation en cours'} %}
+    {% set jobStates = {queued:'En attente',running:'En cours',retrying:'Nouvelle tentative prévue',completed:'Terminée',partial:'Partielle',failed:'En échec',cancelled:'Annulée'} %}
+    <div class="mb-6"><a class="text-sm font-semibold text-primary" href="{{ path('app_connections') }}">← Toutes les connexions</a></div>
+    <section class="exo-card mb-6 overflow-hidden" aria-label="Résumé de la connexion">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-line p-5 sm:p-6">
+            <div class="min-w-0">
+                <p class="exo-kicker">{{ connection.provider == 'github' ? 'GitHub' : 'GitLab' }}</p>
+                <h2 class="exo-section-heading mt-2 break-all">{{ connection.baseUrl }}</h2>
+                <p class="mt-2 text-sm {{ connection.status in ['failed','error'] ? 'text-danger' : (connection.status == 'connected' ? 'text-success' : 'text-muted') }}">{{ states[connection.status]|default(connection.status) }}</p>
+            </div>
+            <span class="exo-badge {{ connection.active ? 'text-success' : 'text-muted' }}">{{ connection.active ? 'Active' : 'Désactivée' }}</span>
+        </div>
+        <dl class="grid gap-5 p-5 text-sm sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
+            <div><dt class="text-muted">Dernier test de connexion</dt><dd class="mt-2 font-semibold">{{ connection.lastTestedAt ? connection.lastTestedAt|date('d/m/Y à H:i') : 'Pas encore testée' }}</dd></div>
+            <div><dt class="text-muted">Dernière synchronisation</dt><dd class="mt-2 font-semibold">{{ connection.lastSyncedAt ? connection.lastSyncedAt|date('d/m/Y à H:i') : 'Pas encore synchronisée' }}</dd></div>
+            <div><dt class="text-muted">Fréquence</dt><dd class="mt-2 font-semibold">Toutes les {{ connection.frequencyHours }} heures</dd></div>
+            <div><dt class="text-muted">Branches analysées</dt><dd class="mt-2 break-words font-semibold">{{ connection.branch ?: 'Branche par défaut' }}</dd></div>
+        </dl>
+        <div class="border-t border-line px-5 py-4 text-sm sm:px-6"><span class="text-muted">Organisations ou groupes :</span> {{ connection.organizations|join(', ') ?: 'Tous les repositories accessibles au jeton' }}</div>
+        {% if connection.lastError %}<div class="mx-5 mb-5 rounded-lg border border-line bg-canvas p-4 text-sm text-danger sm:mx-6" role="alert"><strong class="mb-1 block">La dernière opération nécessite votre attention</strong>{{ connection.lastError }}</div>{% endif %}
+        <div class="flex flex-wrap gap-3 border-t border-line bg-canvas p-5 sm:p-6">
+            <a class="exo-btn exo-btn-alt" href="{{ path('app_connection_update',{id:connection.id}) }}">Modifier</a>
+            {% for action,label in {test:'Tester la connexion',sync:'Synchroniser',disable:'Désactiver'} %}
+                <form method="post" action="{{ path('app_connection_'~action,{id:connection.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token(action~'-'~connection.id) }}">
+                    <button class="exo-btn {{ action == 'sync' ? '' : 'exo-btn-alt' }}">{{ label }}</button>
+                </form>
+            {% endfor %}
+        </div>
+    </section>
+    <section class="exo-card overflow-hidden" aria-label="Historique de synchronisation">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line p-5 sm:p-6">
+            <div><p class="exo-kicker">ACTIVITÉ RÉCENTE</p><h2 class="exo-section-heading mt-1">Historique de synchronisation</h2></div>
+            <span class="text-xs text-muted">20 derniers traitements au maximum</span>
+        </div>
+        {% if jobs|length %}
+            <div class="overflow-x-auto">
+                <table class="exo-table w-full text-left text-sm">
+                    <thead><tr><th class="p-4">Lancement</th><th class="p-4">État</th><th class="p-4">Repositories traités</th><th class="p-4">Échecs</th><th class="p-4">Fin du traitement</th></tr></thead>
+                    <tbody>
+                        {% for job in jobs %}
+                            <tr class="border-t border-line">
+                                <td class="whitespace-nowrap p-4">{{ job.createdAt|date('d/m/Y H:i') }}</td>
+                                <td class="p-4"><span class="exo-badge {{ job.status == 'failed' ? 'text-danger' : (job.status == 'completed' ? 'text-success' : (job.status == 'partial' ? 'text-warning' : 'text-muted')) }}">{{ jobStates[job.status]|default(job.status) }}</span></td>
+                                <td class="p-4 font-semibold">{{ job.processed }}</td>
+                                <td class="p-4 {{ job.failed > 0 ? 'text-danger' : 'text-muted' }}">{{ job.failed }}</td>
+                                <td class="whitespace-nowrap p-4 text-muted">{{ job.finishedAt ? job.finishedAt|date('d/m/Y H:i') : '—' }}</td>
+                            </tr>
+                            {% if job.lastError %}<tr><td colspan="5" class="px-4 pb-4 text-sm text-danger">{{ job.lastError }}</td></tr>{% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="exo-empty px-5 py-10 text-center"><h3 class="font-bold">Aucune synchronisation lancée.</h3><p class="mx-auto mt-2 max-w-md text-sm text-muted">Testez d’abord l’accès à la plateforme, puis utilisez « Synchroniser » pour découvrir les repositories autorisés.</p></div>
+        {% endif %}
+    </section>
 {% endblock %}

@@ -1,3 +1,4 @@
+{% set scanStates = {queued:'En attente',running:'En cours',retrying:'Nouvelle tentative prévue',completed:'Terminée',partial:'Partielle',failed:'Échec',cancelled:'Annulée'} %}
 <div class="overflow-x-auto">
 <table class="w-full text-left text-sm">
 <thead class="text-muted">
@@ -16,7 +17,7 @@
 <a class="text-primary underline" href="{{ path('app_application_history', {id:scan.repository.id}) }}">{{ scan.repository.name }}</a>
 </td>
 <td class="p-3">{{ scan.createdAt|date('d/m/Y H:i') }}</td>
-<td class="p-3">{{ scan.status }}{% if scan.lastError %}
+<td class="p-3"><span class="exo-badge {{ scan.status == 'completed' ? 'text-success' : (scan.status == 'failed' ? 'text-danger' : (scan.status == 'partial' ? 'text-warning' : 'text-muted')) }}">{{ scanStates[scan.status]|default(scan.status) }}</span>{% if scan.lastError %}
 <p class="text-danger">{{ scan.lastError }}</p>
 {% endif %}</td>
 <td class="p-3">
