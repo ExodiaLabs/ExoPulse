@@ -35,3 +35,9 @@ Une indisponibilité de plateforme ou de source de versions peut limiter le rés
 ## Accessibilité et limites
 
 La navigation et les formulaires utilisent les commandes standard du navigateur. Un lien « Aller au contenu » est accessible au clavier. Les états ne reposent pas uniquement sur des couleurs. Les tableaux restent consultables par défilement horizontal sur petit écran. La vérification visuelle avec des technologies d’assistance reste à réaliser.
+
+## Repères dans l’interface
+
+Quand le parc est vide, le tableau de bord présente les trois étapes du premier raccordement et un accès direct aux connexions pour les administrateurs. Les cartes précisent les seuils de santé ; aucun indicateur de démonstration n’est ajouté. Les liens du dashboard permettent de rejoindre le catalogue et l’historique.
+
+La rubrique Applications reste sélectionnée dans les détails, dépendances et historiques d’une application. Connexions reste sélectionnée pendant sa configuration. Les accès d’administration sont masqués pour les lecteurs, en complément des contrôles serveur. Sur mobile, la navigation défile horizontalement. Le catalogue conserve les filtres et propose leur réinitialisation.

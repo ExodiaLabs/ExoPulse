@@ -1,12 +1,14 @@
 {% extends 'base.html.twig' %}
 {% block title %}Applications{% endblock %}
 {% block page_title %}Applications et API{% endblock %}
+{% block page_subtitle %}Retrouvez vos applications, leurs versions et les actions à prioriser.{% endblock %}
 {% block body %}
 <section class="exo-card p-5">
-<form method="get" class="mb-5 flex flex-wrap items-end gap-3">
+<div class="exo-section-heading"><div><h2>Votre parc applicatif</h2><p class="mt-1 text-sm text-muted">{{ total }} application(s) correspondent à votre recherche.</p></div>{% if q or status or connection|default('') %}<a class="exo-btn exo-btn-alt" href="{{ path('app_applications') }}">Réinitialiser les filtres</a>{% endif %}</div>
+<form method="get" class="exo-filter-bar mb-5" role="search" aria-label="Rechercher une application">
 <div>
 <label for="q" class="block text-sm">Rechercher</label>
-<input class="exo-input" id="q" name="q" value="{{ q }}" placeholder="Nom du repository">
+<input class="exo-input" id="q" name="q" value="{{ q }}" placeholder="Rechercher par nom…">
 </div>
 <div>
 <label for="status" class="block text-sm">État</label>
@@ -33,6 +35,6 @@
 </div>
 <button class="exo-btn">Filtrer</button>
 </form>
-<p class="mb-3 text-sm text-muted">{{ total }} résultat(s)</p>
+
 {% include 'components/repositories.html.twig' %}{% include 'components/pagination.html.twig' %}</section>
 {% endblock %}

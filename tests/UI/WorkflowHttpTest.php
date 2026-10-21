@@ -63,6 +63,7 @@ final class WorkflowHttpTest extends WebTestCase
     public function testRealHttpWorkflowDiscoversAnalysesAndCreatesOneConfirmedIssue(): void
     {
         $this->client->request('GET', '/connections/new');
+        self::assertSelectorTextContains('nav[aria-label="Navigation principale"] a[aria-current="page"]', 'Connexions');
         $this->client->submitForm('Enregistrer la connexion', [
             'connection[name]' => 'Synthetic workflow',
             'connection[provider]' => 'gitlab',
@@ -112,6 +113,7 @@ final class WorkflowHttpTest extends WebTestCase
             self::assertResponseIsSuccessful();
         }
         $this->client->request('GET', '/applications/'.$repository->id.'/dependencies');
+        self::assertSelectorTextContains('nav[aria-label="Navigation principale"] a[aria-current="page"]', 'Applications');
         self::assertSelectorTextContains('main', 'synthetic/workflow');
         self::assertSelectorTextContains('main', '1.0.0');
         self::assertSelectorTextContains('main', '2.0.0');
@@ -150,6 +152,8 @@ final class WorkflowHttpTest extends WebTestCase
         $this->client->loginUser($reader);
         $this->client->request('GET', '/applications/'.$repository->id);
         self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('nav[aria-label="Navigation principale"] a[href="/connections"]');
+        self::assertSelectorNotExists('nav[aria-label="Navigation principale"] a[href="/settings"]');
         $this->client->request('POST', '/findings/issues/preview');
         self::assertResponseStatusCodeSame(403);
         $this->client->request('GET', '/connections');

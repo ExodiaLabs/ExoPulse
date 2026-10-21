@@ -15,6 +15,7 @@ final class DependenciesViewTest extends TestCase
     {
         $view = new Environment(new FilesystemLoader(\dirname(__DIR__, 2).'/templates'), ['strict_variables' => true, 'autoescape' => 'html']);
         $view->addFunction(new TwigFunction('path', static fn (string $route): string => '/'.$route));
+        $view->addFunction(new TwigFunction('is_granted', static fn (string $role): bool => false));
         $view->addFunction(new TwigFunction('asset', static fn (string $path): string => '/'.$path));
         $view->addFunction(new TwigFunction('csrf_token', static fn (string $id): string => 'synthetic-csrf'));
         $view->addGlobal('app', ['current_route' => 'app_application_dependencies', 'flashes' => []]);

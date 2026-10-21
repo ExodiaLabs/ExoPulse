@@ -1,0 +1,16 @@
+{% macro icon(name) %}
+    {% set paths = {
+        pulse: 'M3 12h4l3-8 4 16 3-8h4',
+        dashboard: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
+        applications: 'M4 4h16v5H4z M4 15h16v5H4z M8 6.5h.01 M8 17.5h.01',
+        history: 'M3 11a9 9 0 1 1 2.6 7.4 M3 4v7h7 M12 7v5l3 2',
+        alerts: 'M12 3 2 21h20L12 3z M12 9v5 M12 17h.01',
+        connections: 'M8 4v4 M16 4v4 M6 8h12v3a6 6 0 0 1-12 0V8z M12 17v4',
+        settings: 'M4 6h16 M4 12h16 M4 18h16 M8 3v6 M16 9v6 M10 15v6',
+        logout: 'M9 4H4v16h5 M13 8l4 4-4 4 M8 12h13',
+        arrow: 'M5 12h14 M14 7l5 5-5 5',
+        plus: 'M12 5v14 M5 12h14',
+        check: 'M5 12l4 4L19 6'
+    } %}
+    <svg class="exo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="{{ paths[name]|default(paths.dashboard) }}"/></svg>
+{% endmacro %}
