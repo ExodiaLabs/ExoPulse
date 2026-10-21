@@ -28,7 +28,7 @@ Compose utilise `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` (valeurs loc
 
 ## Frontend et contribution
 
-Lire les références en lecture seule avant toute adaptation. Voir [theme.md](theme.md) pour les tokens natifs v4, composants et mode clair/sombre. Aucun script de simulation n’est inclus.
+Lire les références en lecture seule avant toute adaptation. Voir [theme.md](theme.md) pour les tokens natifs v4, composants et mode clair/sombre. La [navigation Turbo](turbo.md) décrit les cadres, filtres et conventions de formulaires ; le [suivi des traitements](live-monitoring.md) décrit l’actualisation et ses pauses. Aucun script de simulation n’est inclus.
 
 Suivre [AGENTS.md](../AGENTS.md). Les PR empilées déclarent leur base et ne sont pas fusionnées automatiquement. Les contrôles locaux ne prouvent ni disponibilité des API Git ni qualité visuelle sur navigateur.
 

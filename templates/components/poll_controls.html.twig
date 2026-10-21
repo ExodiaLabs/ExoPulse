@@ -1,0 +1,6 @@
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-xs text-muted" data-poll-target="status" role="status">{{ refreshActive ? 'Actualisation toutes les 5 secondes pendant les traitements.' : 'Aucun traitement en cours.' }}</p>
+    <a class="exo-btn exo-btn-alt" href="{{ app.request.uri }}" data-action="poll#refresh" data-poll-target="refresh" data-turbo="false">Actualiser</a>
+</div>
+<p class="mb-4 rounded-lg border border-line p-3 text-sm text-danger" data-poll-target="error" role="alert" hidden></p>
+<noscript><p class="mb-4 text-sm text-muted">Utilisez Actualiser pour consulter les derniers états des traitements.</p></noscript>

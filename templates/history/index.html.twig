@@ -1,1 +1,16 @@
-{% extends 'base.html.twig' %}{% block title %}Historique{% endblock %}{% block page_title %}Historique des analyses{% endblock %}{% block body %}<section class="exo-card p-5"><p class="mb-4 text-sm text-muted">{{ total }} analyse(s)</p>{% include 'components/scans.html.twig' %}{% include 'components/pagination.html.twig' %}</section>{% endblock %}
+{% extends 'base.html.twig' %}
+{% block title %}Historique{% endblock %}
+{% block page_title %}Historique des analyses{% endblock %}
+{% block body %}
+    {% set refreshActive = scans|filter(scan => scan.status in ['queued', 'running', 'retrying'])|length > 0 %}
+    <section class="exo-card p-5" data-controller="poll" data-poll-url-value="{{ app.request.uri }}" aria-label="Suivi des analyses">
+        {% include 'components/poll_controls.html.twig' %}
+        <turbo-frame id="scan-history-global" data-turbo-action="advance" data-poll-target="frame">
+            <div data-poll-target="state" data-refresh-active="{{ refreshActive ? 'true' : 'false' }}">
+                <p class="mb-4 text-sm text-muted">{{ total }} analyse(s)</p>
+                {% include 'components/scans.html.twig' %}
+                {% include 'components/pagination.html.twig' %}
+            </div>
+        </turbo-frame>
+    </section>
+{% endblock %}

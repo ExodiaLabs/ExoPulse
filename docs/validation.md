@@ -24,6 +24,14 @@ Un contrôle Chromium headless a été exécuté sur un serveur éphémère avec
 
 Les templates utilisent les références Exodia locales, laissées inchangées. Ce contrôle ciblé ne remplace pas un audit WCAG complet ni une matrice de navigateurs.
 
+## Vérifications Turbo
+
+`make quality` valide 149 tests et 828 assertions après les ajouts Turbo. `IssueHttpTest` couvre l’aperçu ciblé et les métadonnées imposant une visite complète à l’authentification ; `TurboPollingHttpTest` couvre les transitions en attente/terminé, la pagination de 27 scans sur deux pages et les permissions sur les cadres de connexion.
+
+Un second contrôle Chromium sur l’application Symfony réelle, avec serveur, cache Kernel et base éphémères, valide Drive sans rechargement complet, recherche avec focus conservé, retour navigateur restaurant le filtre, prévisualisation POST 200 en place, confirmation par un seul POST 303, formulaire invalide 422 et session expirée depuis un cadre ramenant à la connexion complète. Une unique création Git est simulée par MockHttpClient ; aucun fournisseur réel n’est appelé. Aucun défaut JavaScript n’a été observé sur ces parcours.
+
+Un contrôle Chromium avec le bundle réel et des réponses HTML synthétiques a reproduit puis vérifié la correction des entrées d’historique ajoutées par les actualisations. Deux cycles automatiques conservent l’entrée courante ; une requête lente n’est pas doublée. Quatre scénarios supplémentaires vérifient l’arrêt après terminaison, le nettoyage après navigation, la conservation du tableau après panne puis la reprise manuelle, ainsi que la pause et la reprise hors ligne. L’état masqué est simulé par la propriété navigateur ; le mode hors ligne est appliqué par le contexte Chromium. Une erreur JavaScript indépendante portant le même message réseau continue de remonter. Ces contrôles complémentaires ne font pas partie de la CI et ne mesurent pas une charge multi-utilisateur.
+
 ## Production et limites
 
 Les images runtime et nginx ont été construites localement. Le smoke Compose a joué les migrations, démarré PHP/nginx/worker/planificateur/PostgreSQL, vérifié session Secure, assets, rôle DB minimal, sauvegarde et restauration isolée. La file a conservé un message après redémarrage de la base avant consommation.
