@@ -1,0 +1,10 @@
+{% if stale|default(false) %}
+    <span class="text-warning">À actualiser</span>
+    {% if score is not null %}<span class="block text-xs text-muted">Ancien score : {{ score }}/100</span>{% endif %}
+{% elseif provisional|default(false) %}
+    <span class="text-muted">Provisoire{% if score is not null %} : {{ score }}/100{% endif %}</span>
+{% elseif score is not null %}
+    <strong class="{{ score < 50 ? 'text-danger' : (score < 80 ? 'text-warning' : 'text-success') }}">{{ score }}/100</strong>
+{% else %}
+    <span class="text-muted">Non évalué</span>
+{% endif %}
