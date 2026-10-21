@@ -11,7 +11,6 @@ use Symfony\Component\Routing\Attribute\Route;
 /** Initial navigation until each feature replaces its own route. */
 final class WorkspaceController extends AbstractController
 {
-    #[Route('/applications', name: 'app_applications', defaults: ['title' => 'Applications'], methods: ['GET'])]
     #[Route('/findings', name: 'app_findings', defaults: ['title' => 'Alertes et recommandations'], methods: ['GET'])]
     #[Route('/history', name: 'app_history', defaults: ['title' => 'Historique des analyses'], methods: ['GET'])]
     public function __invoke(string $title): Response

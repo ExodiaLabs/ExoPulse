@@ -1,0 +1,32 @@
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="text-muted">
+<tr>
+<th class="p-3">Application</th>
+<th class="p-3">Date</th>
+<th class="p-3">État</th>
+<th class="p-3">Score</th>
+<th class="p-3">Branche / commit</th>
+</tr>
+</thead>
+<tbody>
+{% for scan in scans %}
+<tr class="border-t border-line">
+<td class="p-3">
+<a class="text-primary underline" href="{{ path('app_application_history', {id:scan.repository.id}) }}">{{ scan.repository.name }}</a>
+</td>
+<td class="p-3">{{ scan.createdAt|date('d/m/Y H:i') }}</td>
+<td class="p-3">{{ scan.status }}{% if scan.lastError %}
+<p class="text-danger">{{ scan.lastError }}</p>
+{% endif %}</td>
+<td class="p-3">
+{% include 'components/score.html.twig' with {score:scan.score,provisional:scan.status == 'partial'} only %}</td>
+<td class="p-3 break-all">{{ scan.branch }} / {{ scan.commitHash|default('Inconnu',true)|slice(0,12) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="5" class="p-6 text-muted">Aucune analyse disponible.</td>
+</tr>
+{% endfor %}</tbody>
+</table>
+</div>

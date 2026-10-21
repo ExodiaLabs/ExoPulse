@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ repository.name }}{% endblock %}
+{% block page_title %}{{ repository.name }}{% endblock %}
+{% block body %}
+<nav class="mb-5 flex flex-wrap gap-3" aria-label="Application">
+<a class="exo-btn exo-btn-alt" href="{{ path('app_application_dependencies',{id:repository.id}) }}">Dépendances</a>
+<a class="exo-btn exo-btn-alt" href="{{ path('app_application_history',{id:repository.id}) }}">Historique</a>
+<form method="post" action="{{ path('app_scan',{id:repository.id}) }}">
+<input type="hidden" name="_token" value="{{ csrf_token('scan-'~repository.id) }}">
+<button class="exo-btn">Lancer une analyse</button>
+</form>
+</nav>
+<section class="exo-card mb-5 p-5">
+<h2 class="font-bold">Santé technique</h2>
+<p class="mt-3">
+{% include 'components/score.html.twig' with {score:repository.latestScore,stale:analysis_is_stale(repository.lastScanAt)} only %}</p>
+<p class="mt-2 text-sm text-muted">Confiance {{ repository.confidence }} % · Couverture {{ repository.coverage }} % · Branche {{ repository.defaultBranch }} · {{ repository.connection.name }}</p>
+<p class="mt-2 text-sm text-muted">Dernière vérification : {{ repository.lastScanAt ? repository.lastScanAt|date('d/m/Y H:i') : 'Aucune' }}</p>
+</section>
+<section class="exo-card mb-5 p-5">
+<h2 class="mb-4 font-bold">Constats et migrations</h2>
+{% include 'components/findings.html.twig' %}</section>
+<section class="exo-card p-5">
+<h2 class="mb-3 font-bold">Issues associées</h2>
+{% for issue in issues %}
+<div class="border-t border-line py-3">
+{% if issue.url %}<a class="text-primary underline" href="{{ issue.url }}" rel="noopener noreferrer">Consulter l’issue #{{ issue.number }}</a>{% else %}<span>Création sans lien confirmé</span>{% endif %} · {{ issue.status }}
+{% if issue.lastError %}<p class="my-2 text-sm" role="status">{{ issue.lastError }}</p>{% endif %}
+</div>
+{% else %}
+<p class="text-sm text-muted">Aucune issue associée.</p>
+{% endfor %}</section>
+{% endblock %}
