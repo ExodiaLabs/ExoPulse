@@ -1,4 +1,5 @@
-{% if is_granted('ROLE_ADMIN') %}<form method="post" action="{{ path('app_issues_preview') }}">
+<turbo-frame id="issue-planning" target="_top" autoscroll data-autoscroll-block="start">
+{% if is_granted('ROLE_ADMIN') %}<form data-turbo-frame="issue-planning" method="post" action="{{ path('app_issues_preview') }}">
 <input type="hidden" name="_token" value="{{ csrf_token('issue-preview') }}">{% endif %}
 {% for finding in findings %}
 <article class="border-t border-line py-4">
@@ -35,5 +36,7 @@
 {% endfor %}
 {% if findings|length and is_granted('ROLE_ADMIN') %}
 <p class="my-3 text-sm text-muted">Sélectionnez les constats d’une même application. Aucune issue ne sera créée avant confirmation.</p>
-<button class="exo-btn">Prévisualiser une issue</button>
+<button class="exo-btn" data-turbo-submits-with="Préparation…">Prévisualiser une issue</button>
 {% endif %}{% if is_granted('ROLE_ADMIN') %}</form>{% endif %}
+
+</turbo-frame>

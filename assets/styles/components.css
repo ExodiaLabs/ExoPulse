@@ -93,3 +93,10 @@
     .exo-btn:active { transform: none; }
   }
 }
+
+@layer components {
+  .turbo-progress-bar { height: 3px; background: var(--exo-primary); }
+  turbo-frame { display: block; }
+  turbo-frame[busy] { opacity: .65; cursor: progress; }
+  form[aria-busy="true"] button[type="submit"], button[data-turbo-submits-with]:disabled { cursor: wait; opacity: .65; }
+}
