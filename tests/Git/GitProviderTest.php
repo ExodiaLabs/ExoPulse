@@ -16,6 +16,23 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 
 final class GitProviderTest extends TestCase
 {
+    public function testFactoryBlocksPrivateNetworkBeforeSendingCredentials(): void
+    {
+        $cipher = new \App\Infrastructure\Security\SecretCipher(base64_encode(random_bytes(32)));
+        $connection = new \App\Domain\Model\ProviderConnection();
+        $connection->provider = 'gitlab';
+        $connection->baseUrl = 'https://127.0.0.1';
+        $connection->encryptedToken = $cipher->encrypt('synthetic-test-token');
+        $client = new MockHttpClient(new MockResponse('{}'));
+        $factory = new \App\Infrastructure\Git\GitProviderFactory($client, $cipher, new GitEndpointPolicy('127.0.0.1', ''));
+        $this->expectException(ProviderException::class);
+        try {
+            $factory->forConnection($connection)->test();
+        } finally {
+            self::assertSame(0, $client->getRequestsCount());
+        }
+    }
+
     public function testGithubPaginationAndResolvedContent(): void
     {
         $row = ['id' => 7, 'full_name' => 'org/legacy', 'html_url' => 'https://github.com/org/legacy', 'default_branch' => 'main', 'archived' => true];
