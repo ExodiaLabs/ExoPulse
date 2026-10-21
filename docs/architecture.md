@@ -1,45 +1,34 @@
-# Architecture
+# Architecture implémentée
 
-## État et sources
-
-Les fondations Symfony, espace authentifié, thème et environnement local sont proposés en PR. Les diagrammes ci-dessous décrivent la cible ; fournisseurs, inventaire et moteur ne sont pas encore livrés. La mission ExoPulse élargit les références locales à plusieurs instances GitHub/GitLab et plusieurs centaines de dépôts.
-
-## Organisation cible
-
-La mission impose un monolithe modulaire Symfony 8, Doctrine/PostgreSQL, Twig/Symfony UX et Tailwind v4. L'équipe trace les adaptations dans les [ADR](adr/0001-monolithe-modulaire.md). Les modules métier sont Connexions, Inventaire, Analyse et Pilotage ; chacun sépare Domain, Application, Infrastructure et Presentation selon ses besoins. Une classe simple peut porter un cas d'utilisation sans couche ni interface supplémentaire.
+ExoPulse est un monolithe modulaire Symfony/Twig. `Domain` porte modèles, contrats Git et analyse ; `Application` orchestre les cas d’usage ; `Infrastructure` adapte Doctrine, APIs Git, chiffrement et catalogues ; `Presentation` contient contrôleurs, formulaires, commandes et fonctions Twig. Les contrôleurs délèguent les traitements longs à Messenger.
 
 ```mermaid
 flowchart LR
-    User[Utilisateur autorisé] -->|HTTPS et formulaires CSRF| Web[Symfony et Twig]
-    Web -->|Transactions| DB[(PostgreSQL)]
-    Web -->|Messages persistants| Queue[(File Messenger)]
-    Scheduler[Planificateur] -->|Échéances| Queue
+    User[Administrateur authentifié] -->|Formulaires CSRF| Web[Symfony et Twig]
+    Web --> DB[(PostgreSQL)]
+    Web --> Queue[(Messenger Doctrine)]
+    Scheduler[app:schedule] --> Queue
     Queue --> Worker[Worker Symfony]
-    Worker -->|Snapshots et résultats| DB
-    Worker -->|Lecture statique et issues explicites| Git[GitHub ou GitLab]
-    Worker -->|Coordonnées packages autorisées| Catalog[Registres et cycles de vie]
+    Worker --> DB
+    Worker --> Git[GitHub ou GitLab]
+    Worker -->|Activation explicite| Catalog[Packagist npm endoflife.date]
 ```
 
-Le domaine ne connaît ni HTTP ni GitHub/GitLab. Les contrats fournisseurs séparent lecture et gestion des issues. Les enrichissements externes conservent source et fraîcheur ; une indisponibilité produit une information inconnue ou périmée explicitement marquée.
-
-## Modèle cible proposé
-
-Un Repository représente aussi l'application dans le premier incrément ; éviter une seconde entité Application sans besoin de regroupement démontré. Identité interne stable et unicité `(connection_id, external_id)` empêchent les collisions entre instances. Les snapshots de scan restent attachés à une branche et un commit précis.
+Le domaine ne dépend d’aucun SDK fournisseur. Les contrats de lecture et d’issues sont distincts. Un Repository représente une application : pas de double entité Application. Les observations de technologies et dépendances sont des snapshots JSON dans Scan, sans tables artificielles pour chaque ligne de lockfile.
 
 ```mermaid
 erDiagram
     PROVIDER_CONNECTION ||--o{ REPOSITORY : decouvre
-    PROVIDER_CONNECTION ||--o{ SYNC_JOB : historise
-    REPOSITORY ||--o{ SCAN : analyse
-    SCAN ||--o{ DEPENDENCY_OBSERVATION : contient
-    SCAN ||--o{ FINDING_OCCURRENCE : constate
-    FINDING ||--o{ FINDING_OCCURRENCE : apparait
-    REPOSITORY ||--o{ FINDING : concerne
-    FINDING ||--o{ ISSUE_TRACKING : planifie
+    PROVIDER_CONNECTION ||--o{ SYNC_JOB : synchronise
+    REPOSITORY ||--o{ SCAN : historise
+    REPOSITORY ||--o{ FINDING : constate
+    REPOSITORY ||--o{ ISSUE_TRACKING : planifie
+    CONFIGURATION ||--o{ SCAN : parametre
+    AUDIT_EVENT }o--|| PROVIDER_CONNECTION : reference_logique
 ```
 
-Prévoir index sur connexion/identité externe, repository/date de scan, état/date des jobs et empreinte de constat par repository/branche. Stocker versions et sources observées dans les snapshots ; les catalogues peuvent évoluer sans réécrire l'historique. La durée de conservation reste une question d'exploitation.
+Le diagramme Configuration/Audit indique des relations fonctionnelles, sans clés étrangères sur ces deux liens. Les huit tables métier sont versionnées par migrations. UUID internes et unicité `(connexion, ID externe)` résistent aux renommages et collisions de plateformes. Les constats sont identifiés par dépôt, branche et empreinte ; les scans conservent commit, preuves, dates et erreurs.
 
-## Décisions à tracer
+Les messages portent seulement des identifiants. Une transaction commune conserve job et message ; les verrous consultatifs PostgreSQL protègent les conteneurs concurrents. Les caches des contenus, versions et calendriers ont des durées indépendantes. Un commit inchangé évite la relecture des manifests, tout en permettant le rafraîchissement des métadonnées publiques autorisées.
 
-[0001 : monolithe](adr/0001-monolithe-modulaire.md), [0002 : traitements persistants](adr/0002-analyse-statique-asynchrone.md), [0003 : références visuelles](adr/0003-theme-exodia.md). Authentification définitive, distribution des clés de chiffrement et politique réseau nécessitent des ADR avant production.
+Voir [persistance](persistence.md), [synchronisation](synchronization.md), [scans](scan-execution.md), [issues](issues.md), [planification](scheduling.md) et les [ADR](adr/0001-monolithe-modulaire.md). Le premier compte est un administrateur d’instance ; multi-tenant et SSO restent hors périmètre livré.
