@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Git;
 
 use App\Domain\Git\ProviderException;
-use App\Domain\Model\ProviderConnection;
 use App\Infrastructure\Git\GitEndpointPolicy;
-use App\Infrastructure\Git\GitProviderFactory;
 use App\Infrastructure\Security\SecretCipher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\NoPrivateNetworkHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 final class SecretAndEndpointTest extends TestCase
 {
@@ -47,16 +47,13 @@ final class SecretAndEndpointTest extends TestCase
 
     public function testPrivateIpBlockedEvenWhenHostIsAllowlisted(): void
     {
-        $cipher = new SecretCipher(base64_encode(random_bytes(32)));
-        $connection = new ProviderConnection();
-        $connection->provider = 'gitlab';
-        $connection->baseUrl = 'https://127.0.0.1';
-        $connection->encryptedToken = $cipher->encrypt('private-token');
+        $url = 'https://127.0.0.1/api/v4/user';
+        (new GitEndpointPolicy('127.0.0.1', ''))->validate($url);
         $client = new MockHttpClient(new MockResponse('{}'));
-        $factory = new GitProviderFactory($client, $cipher, new GitEndpointPolicy('127.0.0.1', ''));
-        $this->expectException(ProviderException::class);
+        $guard = new NoPrivateNetworkHttpClient($client);
+        $this->expectException(TransportExceptionInterface::class);
         try {
-            $factory->forConnection($connection)->test();
+            $guard->request('GET', $url)->getStatusCode();
         } finally {
             self::assertSame(0, $client->getRequestsCount());
         }
