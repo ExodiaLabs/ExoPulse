@@ -7,7 +7,6 @@ namespace App\Tests\UI;
 use App\Application\Service\ConfigurationStore;
 use App\Domain\Model\ProviderConnection;
 use App\Domain\Model\Repository;
-use App\Domain\Model\Scan;
 use App\Presentation\Twig\FreshnessExtension;
 use App\Tests\Integration\DatabaseTestCase;
 use Twig\Environment;
@@ -25,16 +24,13 @@ final class FreshnessViewTest extends DatabaseTestCase
         $repository->lastScanAt = new \DateTimeImmutable('-8 days');
         $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
-        $html = $twig->render('components/repositories.html.twig', ['repositories' => [$repository]]);
+        $extension = $twig->getExtension(FreshnessExtension::class);
+        $html = $twig->render('components/score.html.twig', ['score' => $repository->latestScore, 'stale' => $extension->isStale($repository->lastScanAt)]);
         self::assertStringContainsString('À actualiser', $html);
         self::assertStringContainsString('Ancien score : 95/100', $html);
         self::assertStringNotContainsString('class="text-success">95/100', $html);
         self::assertSame(95, $repository->latestScore);
-        $scan = new Scan();
-        $scan->repository = $repository;
-        $scan->status = 'partial';
-        $scan->score = 100;
-        $history = $twig->render('components/scans.html.twig', ['scans' => [$scan]]);
+        $history = $twig->render('components/score.html.twig', ['score' => 100, 'provisional' => true]);
         self::assertStringContainsString('Provisoire : 100/100', $history);
         self::assertStringNotContainsString('class="text-success">100/100', $history);
     }
