@@ -1,5 +1,11 @@
 # Spécifications techniques
 
+## Socle constaté le 21 octobre 2026
+
+`composer.json` exige PHP >=8.4, Symfony 8.1.*, Doctrine ORM ^3.7, PHPUnit ^12 et PHPStan ^2.1. La configuration Messenger définit transports async/failed, trois retries, délai initial de 1 000 ms, multiplicateur 2 et plafond de 30 000 ms ; aucun message métier n'est encore routé. En test, ces transports sont en mémoire. Le contrôleur de santé expose `/healthz` ; cela ne prouve pas la disponibilité de PostgreSQL ni des fournisseurs.
+
+L'orchestrateur a vérifié Symfony 8.1.9 et sa fin de support annoncée pour janvier 2027 via [le calendrier officiel](https://symfony.com/releases/8.1.json). Prévoir sa mise à niveau avant expiration. Les résultats des commandes de qualité restent dans les PR, pas déduits de cette documentation.
+
 ## Cible et compatibilité
 
 La mission fixe Symfony 8, PHP 8.4 minimum sous réserve de compatibilité, Doctrine/PostgreSQL, Twig/UX, Tailwind v4 et Messenger. Les versions réellement installées et leurs contraintes appartiennent à `composer.lock` et au lockfile frontend ; ne pas déduire leur support de ce document. Vérifier les sources officielles avant chaque montée de version. Aucun engagement de compatibilité ne repose sur les versions fictives des maquettes.
