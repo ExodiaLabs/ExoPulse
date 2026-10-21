@@ -28,7 +28,7 @@ Chaque requête possède un timeout d'inactivité de 15 secondes et une durée m
 
 Les issues se créent uniquement par appel explicite à `createIssue()`. L'application reste responsable de la prévisualisation, de l'autorisation, de l'unicité locale et de la prévention des doubles soumissions. L'adaptateur ne rejoue jamais automatiquement un POST : une réponse perdue après création présente un résultat incertain et nécessite une réconciliation avant nouvelle tentative. `issue()` récupère le statut ; `opened` de GitLab est normalisé en `open`.
 
-`ProviderException` expose un message générique sûr, le statut HTTP quand disponible et un délai `retryAfter` issu de `Retry-After` (secondes ou date) ou de `X-RateLimit-Reset`. Le planificateur/Messenger décide du report ; aucun sleep ni retry immédiat ne bloque le processus. Une erreur réseau ou TLS n'expose ni message d'origine ni exception précédente. Aucun token ou corps distant n'est journalisé par ces classes.
+`ProviderException` expose un message générique sûr, le statut HTTP quand disponible et un délai `retryAfter` issu de `Retry-After` (secondes ou date) ou de `X-RateLimit-Reset` uniquement lorsque `X-RateLimit-Remaining` vaut explicitement zéro. Un refus 403 avec quota restant reste un refus de permission, sans délai de quota inféré. Le planificateur/Messenger décide du report ; aucun sleep ni retry immédiat ne bloque le processus. Une erreur réseau ou TLS n'expose ni message d'origine ni exception précédente. Aucun token ou corps distant n'est journalisé par ces classes.
 
 ## Vérification
 

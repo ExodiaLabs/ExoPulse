@@ -40,7 +40,7 @@ final class GitApi
                 $retryAfter = null;
                 if (null !== $retry) {
                     $retryAfter = ctype_digit($retry) ? (int) $retry : max(0, (strtotime($retry) ?: time()) - time());
-                } elseif (isset($headers['x-ratelimit-reset'][0])) {
+                } elseif ('0' === ($headers['x-ratelimit-remaining'][0] ?? null) && isset($headers['x-ratelimit-reset'][0])) {
                     $retryAfter = max(0, (int) $headers['x-ratelimit-reset'][0] - time());
                 }
                 $response->cancel();
