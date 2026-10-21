@@ -14,14 +14,14 @@
 {% block layout %}
 <div class="exo-layout min-h-screen md:flex">
     {% include 'components/sidebar.html.twig' %}
-    <main id="main" class="exo-main min-w-0 flex-1 p-4 md:p-7" tabindex="-1">
+    <main id="main" class="exo-main min-w-0 flex-1 p-3 sm:p-4 md:p-7" tabindex="-1">
         <header class="exo-page-header mb-7 flex flex-wrap items-center justify-between gap-4">
-            <div>
+            <div class="min-w-0">
                 <p class="exo-eyebrow">EXODIA / EXOPULSE</p>
-                <h1 class="mt-1 text-3xl font-extrabold">{% block page_title %}Tableau de bord{% endblock %}</h1>
+                <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold">{% block page_title %}Tableau de bord{% endblock %}</h1>
                 <p class="mt-2 text-sm text-muted">{% block page_subtitle %}Gardez le pouls de votre parc applicatif.{% endblock %}</p>
             </div>
-            <div class="flex flex-wrap items-center gap-3">{% block page_actions %}{% endblock %}{% include 'components/theme_toggle.html.twig' %}</div>
+            <div class="exo-page-actions flex flex-wrap items-center gap-3">{% block page_actions %}{% endblock %}{% include 'components/theme_toggle.html.twig' %}</div>
         </header>
         {% if app.request is not defined or not app.request.headers.has('Turbo-Frame') %}
         {% for type,messages in app.flashes %}
