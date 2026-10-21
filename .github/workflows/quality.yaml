@@ -64,3 +64,27 @@ jobs:
         with:
           fetch-depth: 0
       - run: docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:v8.24.3@sha256:e1b35e12a8c6fa8901f060459cfb6b2fc4c484d3afbe3b029733a3bbfab07055 git /repo --redact --no-banner
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build --build-arg EXOPULSE_REVISION="$GITHUB_SHA" --target web --tag exopulse-web:ci .
+      - run: docker build --build-arg EXOPULSE_REVISION="$GITHUB_SHA" --target runtime --tag exopulse-php:ci .
+      - name: Verify production runtime without database
+        run: |
+          docker run --rm --entrypoint php exopulse-php:ci -r '
+          if (0 === posix_geteuid()) { throw new RuntimeException("Root runtime is forbidden."); }
+          foreach (["intl", "pdo_pgsql", "sodium", "pcntl", "zip", "Zend OPcache"] as $extension) {
+              if (!extension_loaded($extension)) { throw new RuntimeException("Required extension unavailable: ".$extension); }
+          }
+          foreach (["/app/.env", "/app/node_modules", "/app/vendor/bin/phpunit", "/usr/local/bin/composer", "/usr/local/bin/node", "/usr/bin/gcc"] as $path) {
+              if (file_exists($path)) { throw new RuntimeException("Unexpected runtime file: ".$path); }
+          }
+          foreach (["/app/public/build/app.css", "/app/public/build/app.js"] as $asset) {
+              if (!is_file($asset) || 0 === filesize($asset)) { throw new RuntimeException("Missing built asset."); }
+          }
+          $css = file_get_contents("/app/public/build/app.css");
+          foreach ([".grid-cols-2", "lg\\:grid-cols-5", "sm\\:grid-cols-2", ".exo-card"] as $selector) {
+              if (!str_contains($css, $selector)) { throw new RuntimeException("Missing Twig CSS selector: ".$selector); }
+          }
+          echo "Production runtime verified.\n";'

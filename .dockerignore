@@ -10,3 +10,11 @@ design-reference
 tests
 coverage
 *.log
+
+# Local credentials and Symfony vault decryption keys must never enter an image.
+**/auth.json
+**/.npmrc
+**/.yarnrc.yml
+config/secrets/**/*.decrypt.private.php
+**/*.pem
+**/*.key

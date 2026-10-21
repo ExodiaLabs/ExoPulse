@@ -1,0 +1,116 @@
+name: exopulse-prod
+
+x-runtime: &runtime
+  image: exopulse-php:${EXOPULSE_VERSION:?Set an immutable EXOPULSE_VERSION}
+  build:
+    context: .
+    target: runtime
+    args:
+      EXOPULSE_REVISION: ${EXOPULSE_VERSION:?Set an immutable EXOPULSE_VERSION}
+  env_file:
+    - path: ${EXOPULSE_ENV_FILE:?Set EXOPULSE_ENV_FILE to a protected runtime env file}
+      required: true
+      format: raw
+  environment:
+    APP_ENV: prod
+    APP_DEBUG: 0
+    APP_RUNTIME_OPTIONS: '{"disable_dotenv":true}'
+    APP_SHARE_DIR: /app/var/share
+  read_only: true
+  tmpfs:
+    - /tmp:uid=33,gid=33,mode=1770
+    - /app/var/cache:uid=33,gid=33,mode=1770
+    - /app/var/log:uid=33,gid=33,mode=1770
+    - /app/var/share:uid=33,gid=33,mode=1770
+  volumes:
+    - sessions:/app/var/sessions
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  init: true
+  restart: unless-stopped
+  stop_grace_period: 90s
+  depends_on:
+    database:
+      condition: service_healthy
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
+services:
+  database:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_DB: ${EXOPULSE_DB_NAME:-exopulse}
+      POSTGRES_USER: exopulse_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password, app_database_password]
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./docker/postgres/initialize.sql:/docker-entrypoint-initdb.d/10-exopulse.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+  php:
+    <<: *runtime
+  worker:
+    <<: *runtime
+    command: [php, bin/console, messenger:consume, async, --time-limit=3600, --memory-limit=192M, --no-interaction]
+    healthcheck:
+      test: [CMD, php, /usr/local/bin/console-healthcheck.php, 'messenger:consume']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+  scheduler:
+    <<: *runtime
+    command: [php, bin/console, app:schedule, --watch, --no-interaction]
+    healthcheck:
+      test: [CMD, php, /usr/local/bin/console-healthcheck.php, 'app:schedule']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+  web:
+    image: exopulse-web:${EXOPULSE_VERSION:?Set an immutable EXOPULSE_VERSION}
+    build:
+      context: .
+      target: web
+      args:
+        EXOPULSE_REVISION: ${EXOPULSE_VERSION:?Set an immutable EXOPULSE_VERSION}
+    ports:
+      - "127.0.0.1:${EXOPULSE_HTTP_PORT:-8080}:8080"
+    depends_on:
+      php:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+secrets:
+  postgres_password:
+    file: ${EXOPULSE_DB_PASSWORD_FILE:?Set EXOPULSE_DB_PASSWORD_FILE to the protected password file}
+
+  app_database_password:
+    file: ${EXOPULSE_APP_DB_PASSWORD_FILE:?Set EXOPULSE_APP_DB_PASSWORD_FILE to the protected app password file}
+
+volumes:
+  database:
+  sessions:

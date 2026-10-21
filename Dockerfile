@@ -22,13 +22,51 @@ FROM dev AS dependencies
 COPY --chown=www-data:www-data composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist --no-progress
 
-FROM base AS runtime
-RUN apt-mark manual libicu72 libpq5 libzip4 libfcgi-bin \
-    && apt-get purge -y --auto-remove libicu-dev libpq-dev libzip-dev git unzip autoconf dpkg-dev g++ gcc make pkg-config re2c \
+FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f AS frontend
+WORKDIR /build
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY assets ./assets
+COPY templates ./templates
+RUN npm run check && npm run build
+
+FROM php:8.4.26-fpm-bookworm@sha256:845c7ba3487a47607f12cd35d09ac0e0880e8703f92a54ad517b69faef136072 AS runtime
+RUN apt-get update && apt-get install -y --no-install-recommends libicu72 libpq5 libzip4 libfcgi-bin \
+    && apt-mark manual libicu72 libpq5 libzip4 libfcgi-bin \
+    && apt-get purge -y --auto-remove autoconf dpkg-dev g++ gcc make pkg-config re2c \
     && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+ARG EXOPULSE_REVISION=unknown
+LABEL org.opencontainers.image.title="ExoPulse PHP" org.opencontainers.image.revision=$EXOPULSE_REVISION
 ENV APP_ENV=prod APP_DEBUG=0 APP_RUNTIME_OPTIONS='{"disable_dotenv":true}'
+COPY --from=base /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=base /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 COPY docker/php/runtime.ini /usr/local/etc/php/conf.d/zz-runtime.ini
-COPY --chown=www-data:www-data . .
+COPY docker/php/production.ini /usr/local/etc/php/conf.d/zzz-production.ini
+COPY docker/php/pool.conf /usr/local/etc/php-fpm.d/zz-app.conf
+COPY docker/php/healthcheck /usr/local/bin/php-healthcheck
+COPY docker/php/console-healthcheck.php /usr/local/bin/console-healthcheck.php
+COPY docker/php/runtime-check.php /usr/local/bin/runtime-check.php
+COPY docker/php/runtime-entrypoint.sh /usr/local/bin/runtime-entrypoint
+COPY --chown=www-data:www-data composer.json composer.lock symfony.lock ./
+COPY --chown=www-data:www-data bin ./bin
+COPY --chown=www-data:www-data config ./config
+COPY --chown=www-data:www-data src ./src
+COPY --chown=www-data:www-data templates ./templates
+COPY --chown=www-data:www-data migrations ./migrations
+COPY --chown=www-data:www-data public/index.php ./public/index.php
+COPY --from=frontend --chown=www-data:www-data /build/public/build ./public/build
 COPY --from=dependencies --chown=www-data:www-data /app/vendor /app/vendor
+RUN mkdir -p var/cache var/log var/share var/sessions && chown -R www-data:www-data var
 USER www-data
+ENTRYPOINT ["runtime-entrypoint"]
+HEALTHCHECK --interval=15s --timeout=3s --start-period=20s CMD ["php-healthcheck"]
 CMD ["php-fpm"]
+
+FROM nginxinc/nginx-unprivileged:1.28-alpine@sha256:7377697a821c131a924a7105fafbe7414db4e9fcc77a6f08f776f33f141ec3f8 AS web
+ARG EXOPULSE_REVISION=unknown
+LABEL org.opencontainers.image.title="ExoPulse HTTP" org.opencontainers.image.revision=$EXOPULSE_REVISION
+COPY docker/nginx/production.conf /etc/nginx/conf.d/default.conf
+COPY --from=runtime /app/public /app/public
+USER nginx
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
