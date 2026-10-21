@@ -25,7 +25,8 @@ final class WorkspaceTest extends WebTestCase
         $client->request('GET', '/');
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main', 'Aucune analyse disponible');
-        self::assertSelectorCount(5, '[aria-label="Non disponible"]');
+        self::assertSelectorCount(5, 'section[aria-label="Indicateurs du parc"] article');
+        self::assertSelectorTextContains('main', 'Un score inconnu ne signifie pas un score nul.');
     }
 
     public function testLoginRejectsMissingCsrfAndDoesNotRevealCredentials(): void

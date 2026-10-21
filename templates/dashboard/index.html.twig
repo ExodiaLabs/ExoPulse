@@ -2,29 +2,33 @@
 {% block title %}Tableau de bord{% endblock %}
 {% block page_subtitle %}Vue d’ensemble de la santé technique du parc applicatif{% endblock %}
 {% block body %}
-    <p class="mb-6 text-xs text-muted">Aucune analyse disponible · Aucun score calculé</p>
-    <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Indicateurs du parc">
-        {% for label in ['Applications', 'En bonne santé', 'À surveiller', 'Critiques', 'Dépendances obsolètes'] %}
-            <article class="exo-card p-5">
-                <h2 class="exo-eyebrow">{{ label }}</h2>
-                <p class="mt-2 text-3xl font-bold" aria-label="Non disponible">—</p>
-                <p class="mt-1 text-xs text-muted">En attente d’analyse</p>
-            </article>
-        {% endfor %}
-    </section>
-    <section class="exo-card p-5" aria-label="Premiers pas">
-        {% include 'components/empty_state.html.twig' with {
-            title: 'Votre parc attend sa première analyse',
-            message: 'Aucun repository n’a encore été synchronisé. Les indicateurs de santé, technologies et priorités apparaîtront lorsque des résultats vérifiés seront disponibles.'
-        } only %}
-        <p class="pb-4 text-center text-sm text-muted">La configuration des fournisseurs et les analyses seront disponibles dans les prochains incréments.</p>
-    </section>
-    <section class="mt-5 grid gap-4 lg:grid-cols-3" aria-label="Résultats des analyses">
-        {% for heading in ['Santé du parc', 'Technologies principales', 'Versions hors support'] %}
-            <article class="exo-card p-5">
-                <h2 class="font-bold">{{ heading }}</h2>
-                <p class="mt-5 text-sm text-muted">Informations indisponibles avant la première analyse.</p>
-            </article>
-        {% endfor %}
-    </section>
+<section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Indicateurs du parc">
+{% for key,label in {total:'Applications',healthy:'En bonne santé',attention:'À surveiller',critical:'Critiques',outdated:'Dépendances obsolètes'} %}
+<article class="exo-card p-5">
+<h2 class="exo-eyebrow">{{ label }}</h2>
+<p class="mt-2 text-3xl font-bold">{{ attribute(stats,key) }}</p>
+</article>
+{% endfor %}</section>
+<p class="mb-5 text-sm text-muted">{{ stats.unknown }} application(s) sans évaluation actuelle (absente ou périmée) · {{ stats.unsupported }} technologie(s) hors support. Un score inconnu ne signifie pas un score nul.</p>
+<section class="mb-5 grid gap-4 lg:grid-cols-2">
+<article class="exo-card p-5">
+<h2 class="mb-4 font-bold">Évolution du score moyen</h2>
+{% include 'components/health_trend.html.twig' with {trend:trend} only %}
+{% for point in trend %}
+<p class="border-t border-line py-2 text-sm">{{ point.date }} : {{ point.score is not null ? point.score ~ '/100' : 'Non évalué' }} · {{ point.count }} analyse(s)</p>
+{% else %}
+<p class="text-sm text-muted">Aucune analyse disponible pour afficher une évolution.</p>
+{% endfor %}</article>
+<article class="exo-card p-5">
+<h2 class="mb-3 font-bold">Comprendre les indicateurs</h2>
+<p class="text-sm leading-relaxed text-muted">Les scores reposent sur les constats confirmés. La confiance et la couverture restent visibles séparément. L’obsolescence n’est pas une vulnérabilité confirmée.</p>
+<a class="mt-4 inline-block text-primary underline" href="{{ path('app_settings') }}">Consulter les pondérations</a>
+</article>
+</section>
+<section class="exo-card mb-5 p-5">
+<h2 class="mb-4 font-bold">Applications prioritaires</h2>
+{% include 'components/repositories.html.twig' with {repositories:priorities} only %}</section>
+<section class="exo-card p-5">
+<h2 class="mb-4 font-bold">Dernières analyses</h2>
+{% include 'components/scans.html.twig' with {scans:recentScans} only %}</section>
 {% endblock %}
