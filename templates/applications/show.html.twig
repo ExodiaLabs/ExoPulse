@@ -5,10 +5,10 @@
 <nav class="mb-5 flex flex-wrap gap-3" aria-label="Application">
 <a class="exo-btn exo-btn-alt" href="{{ path('app_application_dependencies',{id:repository.id}) }}">Dépendances</a>
 <a class="exo-btn exo-btn-alt" href="{{ path('app_application_history',{id:repository.id}) }}">Historique</a>
-<form method="post" action="{{ path('app_scan',{id:repository.id}) }}">
+{% if is_granted('ROLE_ADMIN') %}<form method="post" action="{{ path('app_scan',{id:repository.id}) }}">
 <input type="hidden" name="_token" value="{{ csrf_token('scan-'~repository.id) }}">
 <button class="exo-btn">Lancer une analyse</button>
-</form>
+</form>{% endif %}
 </nav>
 <section class="exo-card mb-5 p-5">
 <h2 class="font-bold">Santé technique</h2>
@@ -25,7 +25,11 @@
 {% for issue in issues %}
 <div class="border-t border-line py-3">
 {% if issue.url %}<a class="text-primary underline" href="{{ issue.url }}" rel="noopener noreferrer">Consulter l’issue #{{ issue.number }}</a>{% else %}<span>Création sans lien confirmé</span>{% endif %} · {{ issue.status }}
-{% if issue.lastError %}<p class="my-2 text-sm" role="status">{{ issue.lastError }}</p>{% endif %}
+{% if issue.lastError %}<p class="my-2 text-sm" role="status">{{ issue.lastError }}</p>{% endif %}{% if is_granted('ROLE_ADMIN') %}<form class="mt-2" method="post" action="{{ path('app_issues_refresh',{id:issue.id}) }}">
+<input type="hidden" name="_token" value="{{ csrf_token('issue-refresh-'~issue.id) }}">
+{% if not issue.number %}<label class="mb-3 grid gap-2 text-sm">Numéro d’une issue existante à associer après vérification sur le fournisseur<input class="exo-input" name="number" inputmode="numeric" pattern="[1-9][0-9]*" required maxlength="20"></label>{% endif %}
+<button class="exo-btn exo-btn-alt">{{ issue.number ? 'Actualiser le statut' : 'Associer et vérifier l’issue existante' }}</button>
+</form>{% endif %}
 </div>
 {% else %}
 <p class="text-sm text-muted">Aucune issue associée.</p>
