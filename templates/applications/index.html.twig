@@ -4,11 +4,11 @@
 {% block page_subtitle %}Retrouvez vos applications, leurs versions et les actions à prioriser.{% endblock %}
 {% block body %}
 <section class="exo-card p-5">
-<div class="exo-section-heading"><div><h2>Votre parc applicatif</h2><p class="mt-1 text-sm text-muted">{{ total }} application(s) correspondent à votre recherche.</p></div>{% if q or status or connection|default('') %}<a class="exo-btn exo-btn-alt" href="{{ path('app_applications') }}">Réinitialiser les filtres</a>{% endif %}</div>
-<form method="get" class="exo-filter-bar mb-5" role="search" aria-label="Rechercher une application">
+<div class="exo-section-heading"><h2>Votre parc applicatif</h2></div>
+<form data-controller="filter" data-action="input->filter#queue change->filter#change submit->filter#cancel" data-turbo-frame="applications-results" method="get" class="exo-filter-bar mb-5" role="search" aria-label="Rechercher une application">
 <div>
 <label for="q" class="block text-sm">Rechercher</label>
-<input class="exo-input" id="q" name="q" value="{{ q }}" placeholder="Rechercher par nom…">
+<input class="exo-input" id="q" name="q" type="search" value="{{ q }}" placeholder="Rechercher par nom…">
 </div>
 <div>
 <label for="status" class="block text-sm">État</label>
@@ -33,8 +33,10 @@
 <option value="{{ value }}"{% if sort == value %} selected{% endif %}>{{ label }}</option>
 {% endfor %}</select>
 </div>
-<button class="exo-btn">Filtrer</button>
+<button class="exo-btn" data-turbo-submits-with="Recherche…">Filtrer</button>
 </form>
 
-{% include 'components/repositories.html.twig' %}{% include 'components/pagination.html.twig' %}</section>
+<turbo-frame id="applications-results" data-turbo-action="advance">
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3"><p class="text-sm text-muted">{{ total }} application(s) correspondent à votre recherche.</p>{% if q or status or connection|default('') %}<a class="text-sm text-primary underline" data-turbo-frame="_top" href="{{ path('app_applications') }}">Réinitialiser les filtres</a>{% endif %}</div>
+{% include 'components/repositories.html.twig' %}{% include 'components/pagination.html.twig' %}</turbo-frame></section>
 {% endblock %}

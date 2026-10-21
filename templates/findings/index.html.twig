@@ -3,7 +3,7 @@
 {% block page_title %}Alertes et recommandations{% endblock %}
 {% block body %}
 <section class="exo-card p-5">
-<form method="get" class="mb-5 flex flex-wrap items-end gap-3">
+<form data-controller="filter" data-action="input->filter#queue change->filter#change submit->filter#cancel" data-turbo-frame="findings-results" method="get" class="mb-5 flex flex-wrap items-end gap-3">
 <div>
 <label for="q">Recherche</label>
 <input class="exo-input" id="q" name="q" value="{{ q }}">
@@ -19,8 +19,9 @@
 <label for="type">Type</label>
 <input class="exo-input" name="type" id="type" value="{{ type }}">
 </div>
-<button class="exo-btn">Filtrer</button>
+<button class="exo-btn" data-turbo-submits-with="Recherche…">Filtrer</button>
 </form>
+<turbo-frame id="findings-results" data-turbo-action="advance">
 <p class="mb-3 text-sm text-muted">{{ total }} constat(s)</p>
-{% include 'components/findings.html.twig' %}{% include 'components/pagination.html.twig' %}</section>
+{% include 'components/findings.html.twig' %}{% include 'components/pagination.html.twig' %}</turbo-frame></section>
 {% endblock %}
