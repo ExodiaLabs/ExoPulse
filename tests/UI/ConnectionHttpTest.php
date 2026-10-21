@@ -44,6 +44,10 @@ final class ConnectionHttpTest extends WebTestCase
     public function testConnectionCreationEncryptsTokenAndEditNeverDisplaysIt(): void
     {
         $this->client->request('GET', '/connections/new');
+        self::assertSelectorExists('form[data-controller="wizard"]');
+        self::assertSelectorCount(4, 'form[data-controller="wizard"] fieldset[data-wizard-target="step"]');
+        self::assertSelectorNotExists('form[data-controller="wizard"] fieldset[hidden], form[data-controller="wizard"] fieldset[aria-hidden="true"], form[data-controller="wizard"] fieldset.hidden');
+        self::assertSelectorExists('form[data-controller="wizard"] button[type="submit"]:not([hidden])');
         $this->client->submitForm('Enregistrer la connexion', ['connection[name]' => 'Synthetic connection', 'connection[provider]' => 'github', 'connection[baseUrl]' => 'https://github.com', 'connection[token]' => 'synthetic-private-token', 'connection[organizations]' => 'team-one, team-two', 'connection[frequencyHours]' => '24']);
         self::assertResponseStatusCodeSame(303);
         $connection = $this->em->getRepository(ProviderConnection::class)->findOneBy(['name' => 'Synthetic connection']);
@@ -56,6 +60,8 @@ final class ConnectionHttpTest extends WebTestCase
         $original = $connection->encryptedToken;
         $this->client->request('GET', '/connections/'.$connection->id.'/edit');
         self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('form[data-controller~="wizard"]');
+        self::assertSelectorNotExists('nav[aria-label="Étapes de création"]');
         self::assertStringNotContainsString('synthetic-private-token', (string) $this->client->getResponse()->getContent());
         self::assertStringNotContainsString($original, (string) $this->client->getResponse()->getContent());
         $this->client->submitForm('Enregistrer la connexion', ['connection[name]' => 'Renamed synthetic connection', 'connection[token]' => '']);
@@ -75,6 +81,42 @@ final class ConnectionHttpTest extends WebTestCase
         $persisted = $this->em->find(ProviderConnection::class, $connection->id);
         self::assertInstanceOf(ProviderConnection::class, $persisted);
         self::assertFalse($persisted->active);
+    }
+
+    public function testInvalidWizardSchedulePreservesFieldsWithoutRedisplayingToken(): void
+    {
+        $before = $this->em->getRepository(ProviderConnection::class)->count();
+        $this->client->request('GET', '/connections/new');
+        $crawler = $this->client->submitForm('Enregistrer la connexion', [
+            'connection[name]' => 'Synthetic wizard correction',
+            'connection[provider]' => 'gitlab',
+            'connection[baseUrl]' => 'https://gitlab.com',
+            'connection[token]' => 'synthetic-wizard-private-token',
+            'connection[organizations]' => 'synthetic-team',
+            'connection[includedRepositories]' => 'synthetic-team/api-*',
+            'connection[branch]' => 'release/legacy',
+            'connection[frequencyHours]' => '0',
+        ]);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame($before, $this->em->getRepository(ProviderConnection::class)->count());
+        self::assertSelectorExists('form[data-controller="wizard"]');
+        self::assertSelectorCount(4, 'fieldset[data-wizard-target="step"]');
+        self::assertSelectorCount(1, 'fieldset[data-step-invalid="true"]');
+        self::assertSelectorExists('fieldset[data-step-invalid="true"] input[name="connection[frequencyHours]"]');
+        self::assertSelectorNotExists('fieldset[hidden], fieldset[aria-hidden="true"], fieldset.hidden');
+        foreach ([
+            'name' => 'Synthetic wizard correction',
+            'baseUrl' => 'https://gitlab.com',
+            'organizations' => 'synthetic-team',
+            'includedRepositories' => 'synthetic-team/api-*',
+            'branch' => 'release/legacy',
+            'frequencyHours' => '0',
+        ] as $field => $value) {
+            self::assertSame($value, $crawler->filter('input[name="connection['.$field.']"]')->attr('value'));
+        }
+        self::assertSame('gitlab', $crawler->filter('select[name="connection[provider]"] option[selected]')->attr('value'));
+        self::assertSame('', $crawler->filter('input[name="connection[token]"]')->attr('value', ''));
+        self::assertStringNotContainsString('synthetic-wizard-private-token', (string) $this->client->getResponse()->getContent());
     }
 
     public function testUnsafeInstanceIsRejectedBeforePersistence(): void
