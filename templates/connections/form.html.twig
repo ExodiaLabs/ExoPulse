@@ -1,0 +1,7 @@
+{% extends 'base.html.twig' %}
+{% block title %}Configurer une connexion{% endblock %}
+{% block page_title %}{{ connection ? 'Modifier la connexion' : 'Nouvelle connexion' }}{% endblock %}
+{% block body %}
+<section class="exo-card max-w-3xl p-6">
+<p class="mb-5 text-sm text-muted">Le jeton est chiffré et ne sera jamais réaffiché. Utilisez uniquement les permissions nécessaires aux repositories autorisés.</p>{{ form_start(form) }}{{ form_errors(form) }}{{ form_widget(form) }}<button type="submit" class="exo-btn mt-5">Enregistrer la connexion</button>{{ form_end(form) }}</section>
+{% endblock %}

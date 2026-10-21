@@ -10,6 +10,11 @@
   .exo-btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid transparent; border-radius: var(--radius-control); padding: .65rem 1rem; background: #7960A6; color: white; font-weight: 700; text-decoration: none; }
   .exo-btn:hover { filter: brightness(1.12); }
   .exo-btn-alt { background: transparent; border-color: var(--exo-border); color: var(--exo-text); }
+  select, textarea { font: inherit; }
+  form > div > div { margin-bottom: 1rem; }
+  form > div > div > label { display: block; margin-bottom: .5rem; font-weight: 600; }
+  form > div > div > input:not([type="checkbox"]):not([type="hidden"]), form > div > div > select, form > div > div > textarea { display: block; width: 100%; background: var(--exo-card); color: var(--exo-text); border: 1px solid var(--exo-border); border-radius: var(--radius-control); padding: .7rem .8rem; }
+  form > div > div > ul { color: var(--exo-danger); margin-top: .5rem; }
   .exo-input { display: block; width: 100%; background: var(--exo-card); color: var(--exo-text); border: 1px solid var(--exo-border); border-radius: var(--radius-control); padding: .7rem .8rem; }
   .exo-nav { display: flex; gap: .75rem; align-items: center; padding: .75rem .875rem; border-radius: var(--radius-control); color: var(--exo-sidebartext); text-decoration: none; white-space: nowrap; }
   .exo-nav:hover { background: #49365f; }

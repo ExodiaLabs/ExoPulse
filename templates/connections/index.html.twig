@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+{% block title %}Connexions{% endblock %}
+{% block page_title %}Connexions fournisseurs{% endblock %}
+{% block body %}<a class="exo-btn mb-5" href="{{ path('app_connection_new') }}">Ajouter une connexion</a>
+<section class="grid gap-4 lg:grid-cols-2">
+{% for connection in connections %}
+<article class="exo-card p-5">
+<h2 class="text-lg font-bold">
+<a class="text-primary underline" href="{{ path('app_connection',{id:connection.id}) }}">{{ connection.name }}</a>
+</h2>
+<p class="mt-2 text-sm text-muted">{{ connection.provider }} · {{ connection.baseUrl }}</p>
+<p class="mt-3">{{ connection.active ? 'Active' : 'Désactivée' }} · {{ connection.status }}</p>
+{% if connection.lastError %}
+<p class="mt-3 text-sm text-danger">{{ connection.lastError }}</p>
+{% endif %}</article>
+{% else %}
+<div class="exo-card p-5">
+{% include 'components/empty_state.html.twig' with {title:'Connectez votre première plateforme Git',message:'Ajoutez une connexion GitHub ou GitLab avec un jeton aux permissions minimales pour découvrir vos repositories.'} only %}</div>
+{% endfor %}</section>
+{% endblock %}
