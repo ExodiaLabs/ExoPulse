@@ -14,7 +14,6 @@ final class WorkspaceController extends AbstractController
     #[Route('/applications', name: 'app_applications', defaults: ['title' => 'Applications'], methods: ['GET'])]
     #[Route('/findings', name: 'app_findings', defaults: ['title' => 'Alertes et recommandations'], methods: ['GET'])]
     #[Route('/history', name: 'app_history', defaults: ['title' => 'Historique des analyses'], methods: ['GET'])]
-    #[Route('/settings', name: 'app_settings', defaults: ['title' => 'Paramètres'], methods: ['GET'])]
     public function __invoke(string $title): Response
     {
         return $this->render('section/empty.html.twig', [
