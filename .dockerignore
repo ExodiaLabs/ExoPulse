@@ -1,0 +1,12 @@
+.git
+.github
+.env*
+.env.local*
+.env.*.local
+vendor
+node_modules
+var
+design-reference
+tests
+coverage
+*.log
