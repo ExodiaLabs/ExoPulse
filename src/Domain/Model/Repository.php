@@ -8,11 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'repository')]
 #[ORM\UniqueConstraint(name: 'repository_external_identity', columns: ['connection_id', 'external_id'])]
 #[ORM\Index(name: 'repository_health', columns: ['latest_score'])]
 class Repository
 {
+    use TracksChanges;
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     public string $id;
@@ -42,6 +44,9 @@ class Repository
     #[ORM\Column(type: 'boolean')]
     public bool $accessible = true;
 
+    #[ORM\Column(type: 'boolean')]
+    public bool $monitored = true;
+
     #[ORM\Column(type: 'string', nullable: true)]
     public ?string $lastCommit = null;
 
@@ -65,5 +70,6 @@ class Repository
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 }
