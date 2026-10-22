@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paramètres{% endblock %}
+{% block page_title %}Paramètres des analyses{% endblock %}
+{% block body %}
+<section class="exo-card max-w-3xl p-6">
+<h2 class="mb-3 font-bold">Score et fraîcheur des analyses</h2>
+<p class="mb-5 text-sm text-muted">Le score part de 100 et déduit les pénalités configurées pour les constats confirmés, dans la limite de 0. Les informations inconnues n’ajoutent aucune pénalité. Couverture et confiance sont affichées séparément.</p>{{ form_start(form) }}{{ form_errors(form) }}{{ form_widget(form) }}<button type="submit" class="exo-btn mt-5">Enregistrer les paramètres</button>{{ form_end(form) }}</section>
+{% endblock %}
