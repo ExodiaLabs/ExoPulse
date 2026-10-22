@@ -45,7 +45,7 @@ Le MVP couvre plusieurs centaines de dépôts et plusieurs instances GitHub/GitL
 
 ## Arbitrages retenus
 
-Une application correspond à un dépôt au MVP ; aucun doublon d’entité Application. L’administration initiale utilise un compte unique sans mot de passe par défaut ; le SSO et une gestion fine de plusieurs utilisateurs pourront remplacer ce mécanisme. Transport PostgreSQL pour limiter le nombre de services. Les paramètres d’exécution et de score seront versionnés avec leurs cas d’usage ; leur présence dans ce plan ne constitue pas une fonctionnalité livrée.
+Une application correspond à un dépôt au MVP ; aucun doublon d’entité Application. L’administration initiale utilise un compte unique sans mot de passe par défaut ; le SSO et une gestion fine de plusieurs utilisateurs pourront remplacer ce mécanisme. Transport PostgreSQL pour limiter le nombre de services. Les paramètres d’exécution et de score sont persistés avec leurs cas d’usage. Les issues restent ouvertes jusqu’à revue et intégration des PR ; voir [livraison](delivery.md) pour les incréments implémentés.
 
 ## Avant mise en service
 

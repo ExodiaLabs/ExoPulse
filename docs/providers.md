@@ -1,39 +1,36 @@
 # Fournisseurs Git
 
-## Statut
+GitHub Cloud/Enterprise Server et GitLab SaaS/self-hosted coexistent dans plusieurs connexions, y compris plusieurs instances du même fournisseur. L’authentification disponible repose sur un token personnel ou d’intégration ; OAuth et GitHub App ne sont pas implémentés.
 
-Contrats et comportements cibles ; aucun adaptateur opérationnel n'est affirmé ici. GitHub Cloud/Enterprise Server et GitLab SaaS/self-hosted doivent coexister, y compris plusieurs connexions de même type.
+Les contrats de lecture et d’issues sont séparés. La factory fournit l’adaptateur à partir d’une connexion ; le domaine reçoit des DTO normalisés et ne dépend d’aucun SDK GitHub/GitLab. Les identifiants externes sont opaques et uniques dans leur connexion.
 
-## Contrats
+Le formulaire définit nom, type, URL HTTPS, token chiffré, organisations/groupes, inclusions/exclusions, branches, fréquence et activation. Le token enregistré n’est jamais réaffiché. Une modification de fournisseur/instance exige une nouvelle connexion ; cela empêche de réattribuer les anciens identifiants à une autre instance.
 
-Un contrat de lecture teste l'accès, découvre les dépôts paginés, lit métadonnées et branches, puis des fichiers à un commit précis. Un contrat distinct gère création et statut des issues. Les objets renvoyés utilisent un modèle interne ; les identifiants externes restent des chaînes opaques et uniques dans leur connexion.
+## Connexion et périmètre
 
-Chaque connexion porte nom, type, URL normalisée, méthode d'authentification, référence au secret protégé, organisations/groupes autorisés, inclusions/exclusions, branches, fréquence et activation. Aucune page ne renvoie le secret sauvegardé.
+Configurer les hôtes autorisés dans `EXOPULSE_GIT_HOSTS`. Pour une instance privée, ajouter explicitement son hôte dans `EXOPULSE_INTERNAL_GIT_HOSTS`. Aucun wildcard, port arbitraire, identifiant dans l’URL ou redirection n’est accepté. Le client Symfony bloque les IP privées pour les hôtes publics et contrôle l’adresse réellement connectée.
+
+GitHub Cloud utilise `api.github.com` ; Enterprise utilise le préfixe `/api/v3`. GitLab utilise `/api/v4`. Les groupes GitLab peuvent être des chemins ou identifiants numériques. Une modification d’organisations suspend la supervision des dépôts importés jusqu’à une nouvelle découverte ; un changement pendant une découverte annule le job.
+
+L’accès en lecture exige métadonnées et contenus des dépôts autorisés. La création d’issues exige une permission d’écriture distincte : pour GitHub, accorder Contents/Metadata en lecture et Issues en écriture sur les seuls dépôts voulus ; pour GitLab, la lecture API/repository et l’écriture API dépendent du type de token et des droits sur le projet. Vérifier les permissions proposées par votre version et privilégier une connexion sans écriture tant que les issues ne sont pas utilisées.
+
+## Synchronisation
 
 ```mermaid
 sequenceDiagram
     actor Admin
     participant Web
+    participant DB
     participant Worker
     participant Git
-    participant DB
-    Admin->>Web: Demander synchronisation
-    Web->>DB: Enregistrer job et message
-    Worker->>Git: Lister dépôts page suivante
-    alt Limite de débit ou panne
-        Git-->>Worker: Erreur et délai éventuel
-        Worker->>DB: Échec sûr et prochaine tentative
-    else Page accessible
-        Git-->>Worker: Métadonnées et pagination
-        Worker->>DB: Upsert par connexion et ID externe
-        Note over Worker: Répéter jusqu'à fin de pagination
-    end
+    Admin->>Web: Synchroniser (CSRF)
+    Web->>DB: Job et message transactionnels
+    Worker->>Git: Parcourir les pages autorisées
+    Git-->>Worker: Métadonnées ou erreur sûre
+    Worker->>DB: Upsert par connexion et ID externe
+    Worker->>DB: Réconcilier les absences après succès complet
 ```
 
-Les dépôts absents d'une réponse partielle ne sont pas supprimés. Archivé et inaccessible sont des états distincts. Un changement de nom conserve l'identité interne. La synchronisation mémorise dernier succès et erreurs expurgées.
+Les renommages conservent l’identité. Archivé et inaccessible sont distincts ; les archives restent analysables. Une réponse partielle ne rend pas les dépôts absents inaccessibles. Quotas, permissions et indisponibilité ont des comportements de reprise distincts.
 
-## Sécurité et tests
-
-La politique SSRF contrôle schéma HTTPS, hôte, résolution DNS et redirections. Autoriser une instance interne nécessite un hôte explicite ; ne pas ouvrir toutes les adresses privées. Désactiver les redirections non autorisées et conserver le contrôle à chaque requête. Les scopes minimums dépendent de la plateforme et de son édition ; vérifier les permissions de lecture puis d'écriture séparément.
-
-Fixtures HTTP : plusieurs pages, ID externe identique dans deux connexions, token expiré, 403/404, 429 et `Retry-After`, timeout, dépôt archivé, sous-groupes, renommage et erreur partielle. Aucun test ne nécessite de token personnel.
+Voir [adaptateurs et tests](git-integration.md), [administration](connections.md) et [synchronisation](synchronization.md). Les tests HTTP simulés couvrent pagination, groupes, chemins encodés, refus/quotas, erreurs sûres et blocage réseau privé ; aucun token personnel n’est nécessaire.

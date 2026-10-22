@@ -1,38 +1,29 @@
 # Spécifications fonctionnelles
 
-## Statut
+## Vocabulaire et accès
 
-Cible issue de la mission, non déclaration de livraison. Consulter le backlog pour les incréments. Les nombres, exemples de versions et courbes de la maquette ne constituent pas des faits sur le parc.
+Une application correspond à un dépôt. Une connexion associe une instance Git, un token protégé et un périmètre. Une analyse observe une branche à un commit fixé. Un constat décrit un risque avec ses preuves. Une information inconnue ne signifie ni saine ni vulnérable.
 
-## Utilisateurs et vocabulaire
+Le compte initial est administrateur. Les vues métier demandent ROLE_USER ; connexions, paramètres, déclenchement de jobs et issues demandent ROLE_ADMIN. Aucun écran de gestion d’autres comptes n’est livré. Le serveur contrôle les autorisations et CSRF indépendamment de l’affichage des boutons.
 
-Le développeur consulte son application ; le lead compare les priorités ; le responsable consulte la synthèse ; l'administrateur configure connexions et analyses. Cette liste provient du cahier des charges local §2. La matrice de droits détaillée reste à décider.
+## Parcours disponible
 
-Une application correspond initialement à un dépôt. Une connexion associe une instance Git à des identifiants et un périmètre autorisé. Une analyse extrait des observations à un commit précis. Un constat décrit un risque étayé. Une information inconnue ne signifie ni saine ni vulnérable.
+1. Créer une connexion GitHub/GitLab, définir organisations/groupes, inclusions/exclusions, branches et fréquence ; tester l’accès.
+2. Demander une synchronisation puis démarrer le worker. L’historique de connexion expose progression et erreurs sûres. Un renommage conserve l’identité ; une réponse partielle ne retire pas les dépôts absents.
+3. Ouvrir le catalogue, rechercher, filtrer, trier et paginer. Consulter détail, technologies/dépendances et historique par application.
+4. Activer volontairement les catalogues externes pour obtenir versions publiées et calendriers de support. Les noms de packages sont alors transmis aux registres publics ; aucun code source ne leur est envoyé.
+5. Sélectionner les constats d’un même dépôt, prévisualiser puis créer explicitement une issue. Le lien existant empêche une nouvelle création. Une réponse réseau incertaine impose une réconciliation avant tout rejeu.
 
-## Parcours cible
+Dashboard, catalogue, détail, dépendances, alertes, historique global, connexions et paramètres utilisent le thème Exodia clair/sombre. Les listes principales sont paginées à 25 lignes. Les états vides ne contiennent aucune donnée fictive.
 
-1. L'administrateur configure une connexion, son périmètre, ses exclusions et teste son accès. Un échec ne révèle aucun secret.
-2. Il demande une synchronisation ; le traitement affiche son état puis les dépôts découverts. Un dépôt inaccessible n'interrompt pas les autres.
-3. L'utilisateur ouvre le catalogue, filtre et consulte un dépôt. L'interface distingue branche, commit, dernière analyse, couverture et confiance.
-4. Il consulte les versions déclarées et résolues, constats et sources. Une suggestion majeure demande une vérification de compatibilité.
-5. Il sélectionne les constats, prévisualise une issue puis confirme sa création. Un lien existant évite un doublon ; fermer l'issue ne résout pas le constat sans nouvelle analyse.
+## Règles métier
 
-## Écrans attendus
+- Versions déclarées et verrouillées restent distinctes ; une intention PHP/Node ne prouve pas le runtime déployé.
+- Mise à jour patch/mineure/majeure, fin de maintenance, fin de support et information inconnue sont séparées.
+- Une version majeure recommandée exige une vérification de compatibilité, même lorsqu’une contrainte de package est satisfaite.
+- Le score va de 0 à 100 ; ses poids sont configurables. Les seuils d’affichage sont 80 pour bonne santé et 50 pour intervention, puis critique. Une analyse partielle ou périmée ne classe pas artificiellement le dépôt en bonne santé.
+- Couverture, confiance et fraîcheur sont distinctes du score. Les catalogues indisponibles ne font pas disparaître les constats précédents.
+- Le premier constat conserve sa date ; seul un scan complet de la branche peut résoudre un constat absent. Fermer une issue ne résout pas le constat.
+- Les scans sont quotidiens par défaut, réglables de 1 à 720 heures. Le planificateur évite les jobs déjà en attente et le worker réutilise les contenus d’un commit inchangé.
 
-Dashboard global, catalogue, détail, dépendances/technologies, alertes/recommandations, historique, connexions et paramètres. Recherche, filtres, tri autorisé et pagination portent sur les listes. Afficher explicitement absence de données, analyse en cours, échec partiel et information indisponible.
-
-Le dashboard compte les applications par statut et présente migrations prioritaires, dépendances obsolètes et dernières analyses avec définition de chaque indicateur. Les tendances reposent sur des snapshots réellement conservés. Une période sans données reste vide.
-
-## Règles confirmées
-
-- Les versions déduites des manifests ne prouvent pas le runtime déployé.
-- Obsolescence, fin de support et vulnérabilité confirmée sont des catégories distinctes.
-- Une date de fin de support absente reste inconnue.
-- Les sources indisponibles ne doivent pas effacer des alertes connues.
-- Aucun scan n'exécute le code du dépôt et aucune issue ne se crée sans action explicite au MVP.
-- Le score de 0 à 100 affiche contributions, confiance, couverture et date. Une couverture insuffisante interdit de présenter un score artificiellement rassurant ou pénalisant.
-
-## Identité et accessibilité
-
-Respecter la navigation latérale, les cartes, tables et statuts Exodia des références. Prévoir clair/sombre, navigation clavier, focus visible, libellés explicites et statuts textuels. Le cahier local vise WCAG AA ; vérifier les contrastes lors de l'adaptation, particulièrement pour les boutons violets. Conserver l'organisation visuelle en adaptant le contenu aux états réels.
+Voir [guide utilisateur](user-guide.md) pour les actions et messages, [moteur](scanning-engine.md) pour la formule et [limites](../README.md#limites-explicites).

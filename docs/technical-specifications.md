@@ -1,29 +1,31 @@
 # Spécifications techniques
 
-## Socle constaté le 21 octobre 2026
+## Versions et composants
 
-`composer.json` exige PHP >=8.4, Symfony 8.1.*, Doctrine ORM ^3.7, PHPUnit ^12 et PHPStan ^2.1. La configuration Messenger définit transports async/failed, trois retries, délai initial de 1 000 ms, multiplicateur 2 et plafond de 30 000 ms ; aucun message métier n'est encore routé. En test, ces transports sont en mémoire. Le contrôleur de santé expose `/healthz` ; cela ne prouve pas la disponibilité de PostgreSQL ni des fournisseurs.
+PHP >=8.4, Symfony 8.1.*, Doctrine ORM ^3.7, PostgreSQL 17, PHPUnit ^12, PHPStan ^2.1 et Tailwind CSS v4. Les versions résolues appartiennent aux lockfiles ; Composer Semver est une dépendance de production explicite. Extensions requises : sodium, mbstring, ctype, iconv et celles fournies par l’image PHP pour PostgreSQL.
 
-L'orchestrateur a vérifié Symfony 8.1.9 et sa fin de support annoncée pour janvier 2027 via [le calendrier officiel](https://symfony.com/releases/8.1.json). Prévoir sa mise à niveau avant expiration. Les résultats des commandes de qualité restent dans les PR, pas déduits de cette documentation.
+Symfony 8.1.9 était installé lors de l’initialisation du 21 octobre 2026 ; son calendrier annonce janvier 2027 comme fin de support. Prévoir la montée de version avant expiration : [calendrier officiel](https://symfony.com/releases/8.1.json).
 
-## Cible et compatibilité
+## HTTP et persistance
 
-La mission fixe Symfony 8, PHP 8.4 minimum sous réserve de compatibilité, Doctrine/PostgreSQL, Twig/UX, Tailwind v4 et Messenger. Les versions réellement installées et leurs contraintes appartiennent à `composer.lock` et au lockfile frontend ; ne pas déduire leur support de ce document. Vérifier les sources officielles avant chaque montée de version. Aucun engagement de compatibilité ne repose sur les versions fictives des maquettes.
+Les contrôleurs servent Twig et formulaires, sans API JSON publique. Les mutations sont POST, protégées par session, rôle et CSRF, puis redirection 303. Les formulaires invalides retournent 422. Les identifiants d’objet sont UUID ; des paramètres SQL et listes de tris autorisés protègent les recherches.
 
-## HTTP
+Huit tables métier versionnées par deux migrations conservent connexions, dépôts, jobs, scans, constats, issues, configuration et audit. Les dates de création/modification sont gérées côté ORM. Les snapshots JSON conservent observations, sources et erreurs sans écraser les analyses historiques. L’identité externe est unique par connexion.
 
-Les routes prévues sont `/`, `/applications`, `/applications/{id}`, leurs dépendances et historique, `/findings`, `/connections`, `/settings`, et les actions POST de test/synchronisation/scan/issues. Les routes sont des vues et formulaires Symfony, sans API JSON publique au MVP. Les GET ne modifient pas l'état métier. Les POST vérifient session, permission, validation et CSRF, puis redirigent vers un état lisible. L'identifiant d'objet ne dispense pas du contrôle d'accès.
+## Asynchrone
 
-## Persistance et traitements
+`PortfolioMessage` est routé sur Messenger Doctrine ; `SynchronizeConnection`, `AnalyzeRepository` et `RefreshIssue` portent seulement un identifiant. Trois retries, délai initial 1 seconde, multiplicateur 2, plafond ordinaire 30 secondes ; les quotas peuvent fixer un délai borné à une journée. Le transport failed conserve les échecs finaux. Les tests substituent un transport mémoire ; un smoke séparé vérifie le vrai worker Doctrine.
 
-Doctrine Migrations versionne chaque changement. Les unicités garantissent identité des dépôts et déduplication des constats/liens d'issues. Un scan conserve commit, branche, statut, dates et couverture, même partiel. Dates persistées en UTC ; présentation selon configuration utilisateur à préciser.
+Les verrous sont des advisory locks PostgreSQL partagés entre conteneurs. Les jobs et messages sont persistés dans la même transaction. Les handlers rechargent les objets après acquisition et ignorent les états terminaux. La commande `app:schedule --watch` vérifie les échéances chaque minute, sans dépendance à un cron externe.
 
-Messenger utilise un transport PostgreSQL persistant et une file d'échec. Les messages portent des identifiants internes, aucun token. La politique de retry est bornée avec backoff ; `Retry-After` ou les dates de reset des fournisseurs évitent les boucles immédiates. Verrou distribué et reprise d'un traitement interrompu doivent précéder la planification réelle.
+## Bornes et caches
 
-## Contrôles requis
+Les listes métier utilisent 25 lignes par page. La découverte Git limite les pages à 10 000 de 100 entrées. Réponses Git : 8 Mio, 15 secondes d’inactivité et 30 secondes au total. Fichier analysé : 2 Mio maximum ; un dépassement rend l’analyse partielle. Catalogues : 8 Mio, 8 secondes d’inactivité et 15 secondes au total.
 
-PHPUnit : domaine, parseurs et cas d'erreur ; tests d'intégration PostgreSQL et adaptateurs HTTP simulés ; tests fonctionnels session/CSRF/autorisations. PHPStan au niveau maximal raisonnable, PHP-CS-Fixer et build Tailwind bloquent la CI. La CI n'utilise aucun accès à un dépôt privé réel.
+Cache des contenus : 30 jours par dépôt/commit, sans conserver les extractions partielles. Versions : 6 heures. Calendriers : 24 heures. Le planificateur actualise les métadonnées même si le code n’a pas changé. Le cache contient potentiellement des noms de packages privés et doit rester protégé.
 
-## Paramétrage à définir
+## Vérification et limites
 
-Bornes de taille des fichiers et de pages API, timeout réseau, nombre de tentatives, concurrence, durée de cache et rétention doivent être configurables et documentés avec leurs valeurs implémentées. Aucun chiffre de performance n'est contractuel à ce stade ; le parc cible compte plusieurs centaines de dépôts.
+PHPStan maximal, style, configurations Symfony, tests HTTP/Doctrine/adaptateurs, audits Composer/npm, build frontend et recherche de secrets bloquent GitHub Actions. Les mocks réseau ne prouvent pas les permissions d’un token réel ni toutes les variantes Enterprise.
+
+Les seuils et formules de santé sont documentés dans [analyse](analysis-implementation.md). Les contraintes de charge, le nombre de workers et les limites de fournisseur doivent être mesurés sur le parc réel ; aucun benchmark contractuel n’est fourni.

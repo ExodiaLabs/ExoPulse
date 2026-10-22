@@ -6,6 +6,6 @@ Les versions sont cachées six heures, les calendriers vingt-quatre heures. Chaq
 
 endoflife.date est un agrégateur communautaire, distinct des éditeurs officiels. PHP, Node.js, Symfony et Vue sont couverts lorsque la série et la date existent. Aucun calendrier React n’est supposé. Les suggestions de cible ne prouvent aucune compatibilité de migration.
 
-Les noms de packages privés peuvent être sensibles : ces adaptateurs ne doivent être appelés qu’après activation explicite de l’enrichissement externe. Aucun code du dépôt n’est envoyé aux registres. L’orchestration et l’option d’administration sont livrées dans les incréments suivants.
+Les noms de packages privés peuvent être sensibles : ces adaptateurs ne doivent être appelés qu’après activation explicite de l’enrichissement externe. Aucun code du dépôt n’est envoyé aux registres. Le paramètre `externalEnrichment`, administrable dans `/settings`, est vérifié par le processeur avant tout enrichissement.
 
 Tests : `vendor/bin/phpunit tests/Analysis/RegistryCatalogTest.php` utilise uniquement des réponses HTTP synthétiques ; vérifier cache, quotas, formats, taille et refus des sources non autorisées.
