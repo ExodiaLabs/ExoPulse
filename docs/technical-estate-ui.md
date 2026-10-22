@@ -1,6 +1,6 @@
 # Lire le patrimoine technique
 
-Le catalogue permet de combiner une connexion, un langage, un framework, une technologie et une version observée avec les filtres de risque et de legacy. La saisie d’une version utilise le même envoi différé que la recherche ; les listes déclenchent le filtrage immédiatement. Le formulaire reste utilisable sans JavaScript avec son bouton de recherche.
+Le catalogue permet de combiner une connexion, un langage, un framework, une technologie et une version observée avec les filtres de risque et de legacy. La saisie d’une version utilise le même envoi différé que la recherche ; les listes déclenchent le filtrage immédiatement. Le formulaire reste utilisable sans JavaScript avec son bouton de recherche. Les facettes décrivent le même projet et peuvent correspondre à des observations différentes, par exemple React et TypeScript. La version reste associée à la technologie sélectionnée en priorité, sinon au framework, sinon au langage : une version de PHP ne devient pas une version de Symfony.
 
 Le score de santé, sa fraîcheur, la couverture et la confiance restent séparés du diagnostic d’obsolescence. Un score indisponible ne signifie ni absence de risque ni score nul. Les colonnes de risque et de legacy affichent les qualifications du moteur, y compris les informations inconnues ou les analyses partielles. Les tris par criticité, ancienneté des constats et urgence facilitent la préparation des migrations.
 

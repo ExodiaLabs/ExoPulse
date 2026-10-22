@@ -113,19 +113,24 @@ SQL;
                 $parameters[$key] = $filters[$key];
             }
         }
-        $observation = ['o.repository_id = c.id'];
-        foreach (['technology' => 'name', 'language' => 'language', 'framework' => 'framework'] as $filter => $column) {
+        $facets = [];
+        foreach (['technology' => 'name', 'framework' => 'framework', 'language' => 'language'] as $filter => $column) {
             if ('' !== ($filters[$filter] ?? '')) {
-                $observation[] = 'lower(o.'.$column.') = :'.$filter;
+                $condition = 'lower(o.'.$column.') = :'.$filter;
+                $where[] = 'EXISTS(SELECT 1 FROM observations o WHERE o.repository_id = c.id AND '.$condition.')';
                 $parameters[$filter] = mb_strtolower(mb_substr($filters[$filter], 0, 255));
+                $facets[] = $condition;
             }
         }
         if ('' !== ($filters['version'] ?? '')) {
             $version = mb_substr($filters['version'], 0, 80);
+            // The first selected facet owns the version: technology, framework, language.
+            $observation = ['o.repository_id = c.id'];
+            if ([] !== $facets) {
+                $observation[] = $facets[0];
+            }
             $observation[] = "(COALESCE(o.observation->>'resolved','') ~ :version OR COALESCE(o.observation->>'declared','') ~ :version)";
             $parameters['version'] = '(^|[^0-9.])v?'.preg_quote($version, '~').'([.]|[^0-9.]|$)';
-        }
-        if (count($observation) > 1) {
             $where[] = 'EXISTS(SELECT 1 FROM observations o WHERE '.implode(' AND ', $observation).')';
         }
 

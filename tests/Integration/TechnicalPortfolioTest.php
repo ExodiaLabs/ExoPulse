@@ -81,6 +81,26 @@ final class TechnicalPortfolioTest extends DatabaseTestCase
         self::assertSame(0, $portfolio->repositories(['connection' => "' OR 1=1 --"])['total']);
     }
 
+    public function testIndependentFacetsKeepVersionBoundToTheMostPreciseSelectedFacet(): void
+    {
+        $this->repository('React TypeScript', [$this->technology('React', '18.2.0'), $this->technology('TypeScript', '5.4.0')]);
+        $this->repository('PHP Symfony', [$this->technology('PHP', '7.4.33'), $this->technology('Symfony', '4.4.50')]);
+        $this->repository('Wrong framework version', [$this->technology('PHP', '4.4.0'), $this->technology('Symfony', '8.0.0')]);
+        $this->em->flush();
+        $portfolio = new TechnicalPortfolio($this->em);
+        $react = ['framework' => 'React', 'language' => 'TypeScript'];
+        self::assertSame(1, $portfolio->repositories($react)['total']);
+        self::assertSame(1, $portfolio->repositories($react + ['version' => '18'])['total']);
+        self::assertSame(0, $portfolio->repositories($react + ['version' => '5'])['total']);
+        $php = ['technology' => 'PHP', 'framework' => 'Symfony'];
+        self::assertSame(2, $portfolio->repositories($php)['total']);
+        self::assertSame(1, $portfolio->repositories($php + ['version' => '7.4'])['total']);
+        self::assertSame(1, $portfolio->repositories($php + ['version' => '4.4'])['total']);
+        self::assertSame(0, $portfolio->repositories(['q' => 'PHP Symfony'] + $php + ['version' => '4.4'])['total']);
+        self::assertSame(0, $portfolio->repositories(['q' => 'Wrong framework version', 'framework' => 'Symfony', 'version' => '4.4'])['total']);
+        self::assertSame(1, $portfolio->repositories(['language' => 'TypeScript', 'version' => '5'])['total']);
+    }
+
     public function testFacetsAndInventoryUseLatestObservationsAndCountRepositoriesOnce(): void
     {
         $repository = $this->repository('Latest inventory', [$this->technology('PHP', '7.4.33'), $this->technology('PHP', '7.4.30'), $this->technology('Symfony HttpKernel', '4.4.50'), $this->technology('TypeScript', '5.0.0')]);
