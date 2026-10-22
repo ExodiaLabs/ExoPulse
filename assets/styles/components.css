@@ -114,3 +114,11 @@
   .exo-tab:hover { color: var(--exo-text); background: var(--exo-primary-soft); }
   .exo-tab[aria-selected="true"] { color: var(--exo-primary); border-color: var(--exo-primary); background: var(--exo-primary-soft); }
 }
+
+@layer components {
+  .exo-findings-scroll { max-height: 42rem; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; padding: .2rem; }
+  .exo-finding-card { padding: 1rem; margin-bottom: .75rem; border: 1px solid var(--exo-border); border-radius: var(--radius-control); background: var(--exo-card); }
+  .exo-finding-card:has(input:checked) { border-color: var(--exo-primary); background: var(--exo-primary-soft); }
+  .exo-findings-loader { display: block; padding: 1.25rem; text-align: center; }
+  turbo-frame[busy] > .exo-findings-loader { opacity: .65; }
+}

@@ -1,0 +1,19 @@
+<turbo-frame id="issue-planning" target="_top" autoscroll data-autoscroll-block="start">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p class="text-sm text-muted">{{ total }} constat(s) actif(s) · Critiques en premier</p>
+        <span class="exo-badge text-primary">Chargement par lots de 20</span>
+    </div>
+    {% if is_granted('ROLE_ADMIN') and total > 0 %}
+        <form id="migration-selection" data-turbo-frame="issue-planning" method="post" action="{{ path('app_issues_preview') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('issue-preview') }}">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line p-3">
+                <p class="text-sm text-muted">Cochez les constats à regrouper. Une prévisualisation précède toute création.</p>
+                <button class="exo-btn" data-turbo-submits-with="Préparation…">Prévisualiser une issue</button>
+            </div>
+        </form>
+    {% endif %}
+    {% if page > 1 %}<p class="mb-3"><a class="text-primary underline" href="{{ path('app_application',{id:repository.id}) }}#findings-page-1">Revenir aux premiers constats</a></p>{% endif %}
+    <div class="exo-findings-scroll" role="region" aria-label="Constats actifs, liste à défilement progressif" tabindex="0">
+        {% include 'applications/_findings_page.html.twig' %}
+    </div>
+</turbo-frame>

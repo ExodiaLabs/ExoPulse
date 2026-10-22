@@ -1,5 +1,6 @@
 import * as Turbo from '@hotwired/turbo';
 import { Application } from '@hotwired/stimulus';
+import LoadMoreController from './controllers/load_more_controller.js';
 import FilterController from './controllers/filter_controller.js';
 import NavigationController from './controllers/navigation_controller.js';
 import PollController from './controllers/poll_controller.js';
@@ -11,6 +12,7 @@ Turbo.setProgressBarDelay(150);
 const application = Application.start();
 application.register('theme', ThemeController);
 
+application.register('load-more', LoadMoreController);
 application.register('filter', FilterController);
 application.register('poll', PollController);
 application.register('wizard', WizardController);
