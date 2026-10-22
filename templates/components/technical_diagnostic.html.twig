@@ -1,0 +1,32 @@
+{% set diagnostic = diagnostic|default(null) %}
+{% set compact = compact|default(false) %}
+{% if diagnostic %}
+    {% set riskColor = diagnostic.risk == 'critical' ? 'text-danger' : (diagnostic.risk in ['high','moderate'] ? 'text-warning' : 'text-muted') %}
+    <div class="{{ compact ? 'space-y-2' : 'space-y-4' }}">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="exo-badge {{ riskColor }}">{{ diagnostic.riskLabel }}</span>
+            <span class="exo-badge {{ diagnostic.legacy == 'confirmed' ? 'text-danger' : (diagnostic.legacy == 'suspected' ? 'text-warning' : 'text-muted') }}">{{ diagnostic.legacyLabel }}</span>
+            {% if diagnostic.partial %}<span class="exo-badge text-muted">Diagnostic partiel</span>{% endif %}
+        </div>
+        <p class="text-xs leading-relaxed text-muted">{{ diagnostic.eolCount }} hors support · {{ diagnostic.maintenanceCount }} en fin de maintenance · {{ diagnostic.outdatedCount }} mise(s) à jour{% if diagnostic.majorCount %}, dont {{ diagnostic.majorCount }} majeure(s){% endif %}</p>
+        {% if compact %}
+            {% if diagnostic.oldestFindingAgeDays is not null %}<p class="text-xs text-muted">Premier constat : il y a {{ diagnostic.oldestFindingAgeDays }} jour(s)</p>{% endif %}
+        {% else %}
+            <dl class="grid gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                <div><dt class="text-muted">Premier constat actif</dt><dd class="mt-1 font-semibold">{{ diagnostic.oldestFindingAt ? diagnostic.oldestFindingAt|date('d/m/Y') : 'Date inconnue' }}</dd></div>
+                <div><dt class="text-muted">Ancienneté du constat</dt><dd class="mt-1 font-semibold">{{ diagnostic.oldestFindingAgeDays is not null ? diagnostic.oldestFindingAgeDays ~ ' jour(s)' : 'Inconnue' }}</dd></div>
+                <div><dt class="text-muted">Hors support depuis</dt><dd class="mt-1 font-semibold">{{ diagnostic.eolDurationDays is not null ? diagnostic.eolDurationDays ~ ' jour(s)' : 'Durée non établie' }}</dd></div>
+                <div><dt class="text-muted">Vérification des sources</dt><dd class="mt-1 font-semibold">{{ diagnostic.lastVerifiedAt ? diagnostic.lastVerifiedAt|date('d/m/Y H:i') : 'Date inconnue' }}</dd></div>
+            </dl>
+            {% if diagnostic.priorityReasons|length %}
+                <div class="rounded-lg border border-line bg-canvas p-4">
+                    <h3 class="text-sm font-bold">Pourquoi cette priorité ?</h3>
+                    <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">{% for reason in diagnostic.priorityReasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+                </div>
+            {% endif %}
+            <p class="text-xs leading-relaxed text-muted">Ce diagnostic repose sur les constats disponibles. Un score absent n’efface pas un risque confirmé ; l’obsolescence n’est pas une vulnérabilité confirmée.</p>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="space-y-2"><span class="exo-badge text-muted">Risque à qualifier</span><span class="exo-badge text-muted">Legacy inconnu</span><p class="text-xs text-muted">Informations insuffisantes. Aucun risque ne peut être écarté sur cette seule base.</p></div>
+{% endif %}

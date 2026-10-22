@@ -1,42 +1,71 @@
 {% extends 'base.html.twig' %}
 {% block title %}Applications{% endblock %}
 {% block page_title %}Applications et API{% endblock %}
-{% block page_subtitle %}Retrouvez vos applications, leurs versions et les actions à prioriser.{% endblock %}
+{% block page_subtitle %}Explorez les technologies du parc, l’obsolescence confirmée et les migrations à prioriser.{% endblock %}
 {% block body %}
+{% set filters = filters|default({q:q|default(''),status:status|default(''),sort:sort|default('name'),connection:connection|default(''),technology:'',language:'',framework:'',version:'',risk:'',legacy:''}) %}
+{% set facets = facets|default({technologies:[],languages:[],frameworks:[]}) %}
 <section class="exo-card p-5">
-<div class="exo-section-heading"><h2>Votre parc applicatif</h2></div>
-<form data-controller="filter" data-action="input->filter#queue change->filter#change submit->filter#cancel" data-turbo-frame="applications-results" method="get" class="exo-filter-bar mb-5" role="search" aria-label="Rechercher une application">
-<div>
-<label for="q" class="block text-sm">Rechercher</label>
-<input class="exo-input" id="q" name="q" type="search" value="{{ q }}" placeholder="Rechercher par nom…">
-</div>
-<div>
-<label for="status" class="block text-sm">État</label>
-<select class="exo-input" id="status" name="status">
-{% for value,label in {'':'Tous',healthy:'En bonne santé',attention:'À surveiller',critical:'Critiques',unknown:'Non évalués ou périmés',stale:'À actualiser'} %}
-<option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
-{% endfor %}</select>
-</div>
-<div>
-<label for="connection" class="block text-sm">Connexion</label>
-<select class="exo-input" id="connection" name="connection">
-<option value="">Toutes les connexions</option>
-{% for item in connections %}
-<option value="{{ item.id }}"{% if connection|default('') == item.id %} selected{% endif %}>{{ item.name }}</option>
-{% endfor %}
-</select>
-</div>
-<div>
-<label for="sort" class="block text-sm">Trier par</label>
-<select class="exo-input" id="sort" name="sort">
-{% for value,label in {name:'Nom',score:'Score',recent:'Dernière analyse'} %}
-<option value="{{ value }}"{% if sort == value %} selected{% endif %}>{{ label }}</option>
-{% endfor %}</select>
-</div>
-<button class="exo-btn" data-turbo-submits-with="Recherche…">Filtrer</button>
-</form>
-
-<turbo-frame id="applications-results" data-turbo-action="advance">
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3"><p class="text-sm text-muted">{{ total }} application(s) correspondent à votre recherche.</p>{% if q or status or connection|default('') %}<a class="text-sm text-primary underline" data-turbo-frame="_top" href="{{ path('app_applications') }}">Réinitialiser les filtres</a>{% endif %}</div>
-{% include 'components/repositories.html.twig' %}{% include 'components/pagination.html.twig' %}</turbo-frame></section>
+    <div class="exo-section-heading"><h2>Votre parc applicatif</h2></div>
+    <form data-controller="filter" data-action="input->filter#queue change->filter#change submit->filter#cancel" data-turbo-frame="applications-results" method="get" class="exo-filter-bar mb-5" role="search" aria-label="Rechercher une application">
+        <div>
+            <label for="q" class="block text-sm">Rechercher</label>
+            <input class="exo-input" id="q" name="q" type="search" value="{{ filters.q }}" placeholder="Rechercher par nom…">
+        </div>
+        <div>
+            <label for="connection" class="block text-sm">Connexion</label>
+            <select class="exo-input" id="connection" name="connection">
+                <option value="">Toutes les connexions</option>
+                {% for item in connections %}<option value="{{ item.id }}"{% if filters.connection == item.id %} selected{% endif %}>{{ item.name }}</option>{% endfor %}
+            </select>
+        </div>
+        {% for field,facet in {language:['Langage',facets.languages],framework:['Framework',facets.frameworks],technology:['Technologie',facets.technologies]} %}
+            <div>
+                <label for="{{ field }}" class="block text-sm">{{ facet[0] }}</label>
+                <select class="exo-input" id="{{ field }}" name="{{ field }}">
+                    <option value="">Tous</option>
+                    {% for choice in facet[1] %}<option value="{{ choice }}"{% if attribute(filters,field) == choice %} selected{% endif %}>{{ choice }}</option>{% endfor %}
+                </select>
+            </div>
+        {% endfor %}
+        <div>
+            <label for="version" class="block text-sm">Version observée</label>
+            <input class="exo-input" id="version" name="version" value="{{ filters.version }}" placeholder="Ex. : 5.4" aria-describedby="version-help">
+        </div>
+        <div>
+            <label for="legacy" class="block text-sm">Qualification legacy</label>
+            <select class="exo-input" id="legacy" name="legacy">
+                {% for value,label in {'':'Toutes',confirmed:'Legacy confirmé',suspected:'Legacy suspecté',none:'Pas de legacy identifié',unknown:'Qualification inconnue'} %}<option value="{{ value }}"{% if filters.legacy == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="risk" class="block text-sm">Risque technique</label>
+            <select class="exo-input" id="risk" name="risk">
+                {% for value,label in {'':'Tous',critical:'Critique',high:'Élevé',moderate:'Modéré',low:'Faible',unknown:'À qualifier'} %}<option value="{{ value }}"{% if filters.risk == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="status" class="block text-sm">Score et fraîcheur</label>
+            <select class="exo-input" id="status" name="status">
+                {% for value,label in {'':'Tous',healthy:'Score de 80 à 100',attention:'Score de 50 à 79',critical:'Score inférieur à 50',unknown:'Non évalués ou périmés',stale:'À actualiser'} %}<option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="sort" class="block text-sm">Trier par</label>
+            <select class="exo-input" id="sort" name="sort">
+                {% for value,label in {name:'Nom',criticality:'Criticité technique',oldest:'Constats les plus anciens',urgency:'Urgence de migration',score:'Score',recent:'Dernière analyse'} %}<option value="{{ value }}"{% if filters.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+        <button class="exo-btn" data-turbo-submits-with="Recherche…">Filtrer</button>
+    </form>
+    <p id="version-help" class="mb-5 text-xs leading-relaxed text-muted">La version filtre les observations de technologie sélectionnées. Une contrainte déclarée, une version résolue et la version réellement déployée ne sont pas équivalentes. Les filtres se combinent.</p>
+    <turbo-frame id="applications-results" data-turbo-action="advance">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-muted">{{ total }} application(s) correspondent à votre recherche.</p>
+            {% if filters|filter(value => value and value != 'name')|length %}<a class="text-sm text-primary underline" data-turbo-frame="_top" href="{{ path('app_applications') }}">Réinitialiser les filtres</a>{% endif %}
+        </div>
+        {% include 'components/repositories.html.twig' %}
+        {% include 'components/pagination.html.twig' %}
+    </turbo-frame>
+</section>
 {% endblock %}

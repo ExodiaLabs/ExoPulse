@@ -10,6 +10,7 @@ use App\Domain\Model\IssueTracking;
 use App\Domain\Model\ProviderConnection;
 use App\Domain\Model\Repository;
 use App\Infrastructure\Persistence\Portfolio;
+use App\Infrastructure\Persistence\TechnicalPortfolio;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,32 +25,36 @@ final class ApplicationController extends AbstractController
     private const UUID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 
     #[Route('/applications', name: 'app_applications', methods: ['GET'])]
-    public function index(Request $request, Portfolio $portfolio, EntityManagerInterface $em): Response
+    public function index(Request $request, TechnicalPortfolio $portfolio, EntityManagerInterface $em): Response
     {
-        $q = $request->query->getString('q');
-        $status = $request->query->getString('status');
-        $sort = $request->query->getString('sort', 'name');
-        $connection = $request->query->getString('connection');
-        $data = $portfolio->repositories($q, $status, $sort, $request->query->getInt('page', 1), Uuid::isValid($connection) ? $connection : '');
+        $filters = [];
+        foreach (['q', 'status', 'sort', 'connection', 'technology', 'language', 'framework', 'version', 'risk', 'legacy'] as $name) {
+            $filters[$name] = mb_substr($request->query->getString($name, 'sort' === $name ? 'name' : ''), 0, 255);
+        }
+        if ('' !== $filters['connection'] && !Uuid::isValid($filters['connection'])) {
+            $filters['connection'] = '';
+        }
+        $data = $portfolio->repositories($filters, $request->query->getInt('page', 1));
 
-        return $this->render('applications/index.html.twig', $data + compact('q', 'status', 'sort', 'connection') + ['connections' => $em->getRepository(ProviderConnection::class)->findBy([], ['name' => 'ASC'], 1000)]);
+        return $this->render('applications/index.html.twig', $data + ['filters' => $filters, 'facets' => $portfolio->facets(), 'connections' => $em->getRepository(ProviderConnection::class)->findBy([], ['name' => 'ASC'], 1000)]);
     }
 
     #[Route('/applications/{id}', name: 'app_application', requirements: ['id' => self::UUID], methods: ['GET'])]
-    public function show(#[MapEntity(id: 'id')] Repository $repository, EntityManagerInterface $em): Response
+    public function show(#[MapEntity(id: 'id')] Repository $repository, EntityManagerInterface $em, TechnicalPortfolio $portfolio): Response
     {
         return $this->render('applications/show.html.twig', [
             'repository' => $repository,
             'scan' => $repository->latestScan,
+            'diagnostic' => $portfolio->diagnosticsFor([$repository->id])[$repository->id] ?? [],
             'findings' => $em->getRepository(Finding::class)->findBy(['repository' => $repository, 'resolvedAt' => null], ['firstSeenAt' => 'ASC'], 200),
             'issues' => $em->getRepository(IssueTracking::class)->findBy(['repository' => $repository], ['createdAt' => 'DESC'], 100),
         ]);
     }
 
     #[Route('/applications/{id}/dependencies', name: 'app_application_dependencies', requirements: ['id' => self::UUID], methods: ['GET'])]
-    public function dependencies(#[MapEntity(id: 'id')] Repository $repository): Response
+    public function dependencies(#[MapEntity(id: 'id')] Repository $repository, TechnicalPortfolio $portfolio): Response
     {
-        return $this->render('applications/dependencies.html.twig', ['repository' => $repository, 'scan' => $repository->latestScan]);
+        return $this->render('applications/dependencies.html.twig', ['repository' => $repository, 'scan' => $repository->latestScan, 'diagnostic' => $portfolio->diagnosticsFor([$repository->id])[$repository->id] ?? []]);
     }
 
     #[Route('/applications/{id}/history', name: 'app_application_history', requirements: ['id' => self::UUID], methods: ['GET'])]

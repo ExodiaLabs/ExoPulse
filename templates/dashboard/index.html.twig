@@ -18,26 +18,68 @@
     </section>
 {% endif %}
 <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Indicateurs du parc">
-    {% set metrics = {
-        total: ['Applications', 'text-primary', 'Dépôts inventoriés'],
-        healthy: ['En bonne santé', 'text-success', 'Score de 80 à 100'],
-        attention: ['À surveiller', 'text-warning', 'Score de 50 à 79'],
-        critical: ['Critiques', 'text-danger', 'Score inférieur à 50'],
-        outdated: ['Dépendances obsolètes', 'text-primary', 'Constats de mises à jour actifs']
+    {% set metricValues = technicalStats|default(stats) %}
+    {% set metrics = technicalStats is defined ? {
+        total:['Applications','text-primary','Projets distincts inventoriés'],
+        legacyConfirmed:['Legacy confirmé','text-danger','Projets avec un legacy confirmé'],
+        legacySuspected:['Legacy suspecté','text-warning','Projets à vérifier'],
+        unsupported:['Hors support','text-danger','Projets avec une technologie hors support'],
+        outdated:['Dépendances obsolètes','text-warning','Projets avec des mises à jour en attente']
+    } : {
+        total:['Applications','text-primary','Dépôts inventoriés'],
+        healthy:['En bonne santé','text-success','Score de 80 à 100'],
+        attention:['À surveiller','text-warning','Score de 50 à 79'],
+        critical:['Critiques','text-danger','Score inférieur à 50'],
+        outdated:['Dépendances obsolètes','text-primary','Constats de mises à jour actifs']
     } %}
     {% for key,metric in metrics %}
         <article class="exo-stat exo-card p-5 {{ metric[1] }}">
             <h2 class="exo-eyebrow">{{ metric[0] }}</h2>
-            <p class="exo-stat-value">{{ attribute(stats,key) }}</p>
+            <p class="exo-stat-value">{{ attribute(metricValues,key) }}</p>
             <span class="exo-stat-description">{{ metric[2] }}</span>
         </article>
     {% endfor %}
 </section>
-<div class="mb-6 flex flex-wrap items-center gap-3 text-xs text-muted">
-    <span class="exo-badge text-muted">{{ stats.unknown }} sans évaluation actuelle</span>
-    <span class="exo-badge text-danger">{{ stats.unsupported }} technologie(s) hors support</span>
-    <span>Un score inconnu ne signifie pas un score nul.</span>
-</div>
+<section class="exo-card mb-5 p-5" aria-labelledby="score-summary-title">
+    <h2 id="score-summary-title" class="text-sm font-semibold">Parmi les scores globaux disponibles</h2>
+    <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
+        <span class="exo-badge text-success">{{ stats.healthy }} de 80 à 100</span>
+        <span class="exo-badge text-warning">{{ stats.attention }} de 50 à 79</span>
+        <span class="exo-badge text-danger">{{ stats.critical }} inférieurs à 50</span>
+        <span class="exo-badge text-muted">{{ stats.unknown }} sans évaluation actuelle</span>
+    </div>
+    <p class="mt-3 text-xs text-muted">Un score inconnu ne signifie pas un score nul. L’absence de score critique ne permet pas d’écarter une technologie hors support.</p>
+</section>
+{% if technicalStats is defined %}
+<section class="exo-card mb-5 p-5 md:p-6" aria-labelledby="estate-title">
+    <div class="exo-section-heading"><h2 id="estate-title">Patrimoine technique et obsolescence</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_applications', {sort:'urgency'}) }}">Prioriser les migrations</a></div>
+    <p class="mb-5 text-sm text-muted">Chaque indicateur compte des applications distinctes. Une application peut relever de plusieurs catégories ; le risque technique reste indépendant du score.</p>
+    <p class="text-sm text-muted"><strong class="text-warning">{{ technicalStats.aging }}</strong> application(s) dont la maintenance active est terminée · <strong>{{ technicalStats.unknown }}</strong> application(s) dont le risque reste à qualifier.</p>
+    <div class="mt-5 flex flex-wrap gap-4 text-sm">
+        <a class="text-primary underline" href="{{ path('app_applications',{legacy:'confirmed'}) }}">Examiner le legacy confirmé</a>
+        <a class="text-primary underline" href="{{ path('app_applications',{legacy:'suspected'}) }}">Vérifier le legacy suspecté</a>
+        <a class="text-primary underline" href="{{ path('app_applications',{risk:'unknown'}) }}">Qualifier les risques inconnus</a>
+    </div>
+    <p class="mt-4 text-xs leading-relaxed text-muted">La fin de maintenance active peut précéder la fin du support de sécurité. Le legacy confirmé repose sur un framework ou des composants structurants hors support confirmés par une source ; le legacy suspecté demande une vérification complémentaire.</p>
+</section>
+{% endif %}
+<section class="exo-card mb-5 p-5 md:p-6" aria-labelledby="inventory-title">
+    <div class="exo-section-heading"><h2 id="inventory-title">Technologies du parc</h2><span class="exo-badge text-muted">Applications distinctes</span></div>
+    {% if technologyInventory|default([]) %}
+        <div class="exo-table-scroll overflow-x-auto" role="region" aria-label="Tableau · Technologies du parc" tabindex="0">
+            <table class="w-full text-left text-sm">
+                <thead><tr><th class="p-3">Technologie</th><th class="p-3">Applications</th><th class="p-3">Hors support</th></tr></thead>
+                <tbody>
+                    {% for technology in technologyInventory %}
+                        <tr class="border-t border-line"><td class="p-3"><a class="font-semibold text-primary underline" href="{{ path('app_applications',{technology:technology.name}) }}">{{ technology.name }}</a></td><td class="p-3">{{ technology.projects }}</td><td class="p-3">{{ technology.eolProjects }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-sm text-muted">Aucune technologie inventoriée. Les analyses alimenteront cette vue avec les observations disponibles.</p>
+    {% endif %}
+</section>
 <section class="mb-5 grid gap-4 lg:grid-cols-2">
     <article class="exo-card p-5 md:p-6">
         <div class="exo-section-heading"><h2>Évolution du score moyen</h2><span class="exo-badge text-primary">Analyses complètes</span></div>
@@ -56,8 +98,8 @@
     </article>
 </section>
 <section class="exo-card mb-5 p-5 md:p-6">
-    <div class="exo-section-heading"><h2>Applications prioritaires</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_applications', {sort:'score'}) }}">Voir les applications</a></div>
-    {% include 'components/repositories.html.twig' with {repositories:priorities} only %}
+    <div class="exo-section-heading"><h2>Applications prioritaires</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_applications', {sort:'urgency'}) }}">Voir les applications</a></div>
+    {% include 'components/repositories.html.twig' with {repositories:priorities,diagnostics:diagnostics|default({})} only %}
 </section>
 <section class="exo-card p-5 md:p-6">
     <div class="exo-section-heading"><h2>Dernières analyses</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_history') }}">Tout l’historique</a></div>

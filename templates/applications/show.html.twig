@@ -10,15 +10,21 @@
 <button class="exo-btn">Lancer une analyse</button>
 </form>{% endif %}
 </nav>
+{% set diagnostic = diagnostic|default(diagnostics[repository.id]|default(null)) %}
+<section class="exo-card mb-5 p-5" aria-labelledby="technical-diagnostic-title">
+    <div class="exo-section-heading"><h2 id="technical-diagnostic-title">Obsolescence et risque technique</h2><span class="exo-badge text-muted">Indépendant du score</span></div>
+    {% include 'components/technical_diagnostic.html.twig' with {diagnostic:diagnostic} only %}
+</section>
 <section class="exo-card mb-5 p-5">
-<h2 class="font-bold">Santé technique</h2>
+<h2 class="font-bold">Score, confiance et couverture</h2>
 <p class="mt-3">
 {% include 'components/score.html.twig' with {score:repository.latestScore,stale:analysis_is_stale(repository.lastScanAt)} only %}</p>
 <p class="mt-2 text-sm text-muted">Confiance {{ repository.confidence }} % · Couverture {{ repository.coverage }} % · Branche {{ repository.defaultBranch }} · {{ repository.connection.name }}</p>
 <p class="mt-2 text-sm text-muted">Dernière vérification : {{ repository.lastScanAt ? repository.lastScanAt|date('d/m/Y H:i') : 'Aucune' }}</p>
 </section>
 <section class="exo-card mb-5 p-5">
-<h2 class="mb-4 font-bold">Constats et migrations</h2>
+<h2 class="mb-2 font-bold">Constats actifs et migrations à préparer</h2>
+<p class="mb-4 text-sm leading-relaxed text-muted">Les versions cibles et les sources ci-dessous orientent la préparation. Vérifiez la compatibilité avant migration ; une mise à jour majeure n’est pas une vulnérabilité confirmée.</p>
 {% include 'components/findings.html.twig' %}</section>
 <section class="exo-card p-5">
 <h2 class="mb-3 font-bold">Issues associées</h2>
