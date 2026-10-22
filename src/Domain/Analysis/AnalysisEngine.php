@@ -87,21 +87,39 @@ final class AnalysisEngine
         }
         unset($dependency);
         foreach ($technologies as &$technology) {
-            if (!in_array($technology['name'], ['PHP', 'Node.js', 'Symfony', 'React', 'Vue'], true)) {
+            if ('language' === ($technology['kind'] ?? '') || (!in_array($technology['name'], ['PHP', 'Node.js', 'Symfony', 'React', 'Vue'], true) && 'Symfony (composants)' !== $technology['name'])) {
                 continue;
             }
             ++$checks;
-            if (!$refresh) {
-                continue;
-            }
+            $technology['supportStatus'] = 'unknown';
+            $technology['supportConfidence'] = 0;
+            $version = $technology['resolved'] ?? $technology['declared'];
+            $selection = SupportVersion::select($technology['name'], $technology['resolved'], $technology['declared']);
+            $lifecycle = null;
+            $origin = 'bundled';
             try {
-                $version = $technology['resolved'] ?? $technology['declared'];
-                $lifecycle = null !== $version ? $this->support->lookup($technology['name'], $version) : null;
-                if (null === $lifecycle || null === $lifecycle['eol']) {
+                // Verified publisher snapshots take precedence over the community
+                // aggregator, which may not yet reflect a support extension.
+                if (null !== $selection && $this->support instanceof OfflineSupportCatalog) {
+                    $lifecycle = $this->support->lookupOffline($technology['name'], $selection['version']);
+                }
+                if (null === $lifecycle && null !== $selection && $refresh) {
+                    $lifecycle = $this->support->lookup($technology['name'], $selection['version']);
+                    $origin = 'online';
+                }
+                if (null === $lifecycle || null === $lifecycle['eol'] || null === $selection) {
                     $findings[] = $this->finding('unknown', 'info', $technology['name'].' : échéance de support inconnue', $technology['name'], $version, null, $technology['source'], null, null, 0);
                     continue;
                 }
-                ++$confirmed;
+                $supportConfidence = $selection['estimated'] ? min(60, $technology['confidence']) : $technology['confidence'];
+                if (!$selection['estimated']) {
+                    ++$confirmed;
+                }
+                $technology['supportStatus'] = $selection['estimated'] ? 'estimated' : 'known';
+                $technology['supportConfidence'] = $supportConfidence;
+                $technology['supportOrigin'] = $origin;
+                $technology['supportDatePrecision'] = $lifecycle['precision'] ?? 'day';
+                $technology['supportCycle'] = SupportVersion::cycle($technology['name'], $selection['version']);
                 $technology['eol'] = $lifecycle['eol'];
                 $technology['endOfMaintenance'] = $lifecycle['endOfMaintenance'];
                 $technology['supportSource'] = $lifecycle['source'];
@@ -110,8 +128,8 @@ final class AnalysisEngine
                 $type = $lifecycle['eol'] < $today ? 'end_of_support' : (null !== $lifecycle['endOfMaintenance'] && $lifecycle['endOfMaintenance'] < $today ? 'end_of_maintenance' : null);
                 if (null !== $type) {
                     $isRuntime = in_array($technology['name'], ['PHP', 'Node.js'], true);
-                    $title = $technology['name'].('end_of_support' === $type ? ' : série hors support de sécurité' : ' : maintenance active terminée').($isRuntime ? ' selon la configuration ; runtime déployé à vérifier' : '').' ; cible à valider pour compatibilité';
-                    $findings[] = $this->finding($type, 'end_of_support' === $type ? 'critical' : 'warning', $title, $technology['name'], $version, $lifecycle['target'], $lifecycle['source'], $lifecycle['verifiedAt'], $lifecycle['eol'], $technology['confidence']);
+                    $title = $technology['name'].($selection['estimated'] ? ' : estimation selon la contrainte déclarée' : '').('end_of_support' === $type ? ' : série hors support de sécurité' : ' : maintenance active terminée').($isRuntime ? ' selon la configuration ; runtime déployé à vérifier' : '').' ; cible à valider pour compatibilité';
+                    $findings[] = $this->finding($type, 'end_of_support' === $type ? 'critical' : 'warning', $title, $technology['name'], $version, $lifecycle['target'], $lifecycle['source'], $lifecycle['verifiedAt'], $lifecycle['eol'], $supportConfidence);
                 }
             } catch (\Throwable) {
                 $errors[] = $technology['name'].' : calendrier de support indisponible.';

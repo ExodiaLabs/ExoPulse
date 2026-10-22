@@ -157,7 +157,7 @@ final class AnalysisEngineTest extends TestCase
 
     public function testMissingLifecycleDateNeverBecomesEndOfSupportFinding(): void
     {
-        $result = $this->engine(['result' => ['releases' => [['name' => '7.4', 'eolFrom' => null, 'eoasFrom' => null]]]])->analyse(['.php-version' => '7.4']);
+        $result = $this->engine(['result' => ['releases' => [['name' => '99.1', 'eolFrom' => null, 'eoasFrom' => null]]]])->analyse(['.php-version' => '99.1']);
         self::assertSame('unknown', $result->findings[0]['type']);
         self::assertNull($result->score);
     }
