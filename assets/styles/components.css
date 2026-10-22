@@ -100,3 +100,10 @@
   turbo-frame[busy] { opacity: .65; cursor: progress; }
   form[aria-busy="true"] button[type="submit"], button[data-turbo-submits-with]:disabled { cursor: wait; opacity: .65; }
 }
+
+@layer components {
+  .exo-wizard-step { display: flex; align-items: center; gap: .5rem; color: var(--exo-muted); font-size: .8rem; }
+  .exo-wizard-step span { display: grid; place-items: center; flex-shrink: 0; width: 1.8rem; height: 1.8rem; border: 1px solid var(--exo-border); border-radius: 50%; font-weight: 700; }
+  .exo-wizard-step[aria-current="step"] { color: var(--exo-primary); font-weight: 700; }
+  .exo-wizard-step[aria-current="step"] span { background: var(--exo-primary-soft); border-color: var(--exo-primary); }
+}

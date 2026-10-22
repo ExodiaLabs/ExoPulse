@@ -1,0 +1,9 @@
+<nav class="mb-6 border-b border-line pb-5" aria-label="Étapes de création" data-wizard-target="navigation" hidden>
+    <p class="exo-kicker mb-3" data-wizard-target="status" role="status" aria-live="polite">Étape 1 sur 4</p>
+    <ol class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {% for label in ['Plateforme', 'Accès sécurisé', 'Périmètre', 'Planification'] %}
+            <li class="exo-wizard-step" data-wizard-target="indicator"><span aria-hidden="true">{{ loop.index }}</span>{{ label }}</li>
+        {% endfor %}
+    </ol>
+    <p class="mt-4 text-sm text-muted">La connexion sera créée uniquement à la dernière étape. Aucun test ni synchronisation ne sera lancé automatiquement.</p>
+</nav>

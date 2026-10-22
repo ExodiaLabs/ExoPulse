@@ -8,10 +8,11 @@
 {% block body %}
     <div class="grid items-start gap-6 xl:grid-cols-3">
         <section class="exo-card p-5 sm:p-7 xl:col-span-2" aria-label="Configuration de la connexion">
-            {{ form_start(form) }}
+            {{ form_start(form, {attr: connection ? {} : {'data-controller':'wizard', 'data-action':'submit->wizard#submit'}}) }}
+            {% if not connection %}{% include 'connections/_steps.html.twig' %}{% endif %}
             {{ form_errors(form) }}
-            <fieldset class="exo-fieldset">
-                <legend class="exo-section-heading">01 · Identifier la plateforme</legend>
+            <fieldset class="exo-fieldset" data-wizard-target="step" data-step-invalid="{{ (form.name.vars.valid and form.provider.vars.valid and form.baseUrl.vars.valid) ? 'false' : 'true' }}">
+                <legend class="exo-section-heading" tabindex="-1">01 · Identifier la plateforme</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Un nom reconnaissable pour retrouver cette source dans tout votre parc.</p>
                 <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
                     <div class="sm:col-span-2">{{ _self.field(form.name, 'Par exemple : GitLab équipe produit ou GitHub organisation.') }}</div>
@@ -21,14 +22,14 @@
                 {% if connection %}<p class="mt-4 rounded-lg border border-line bg-canvas p-3 text-sm text-muted">Le fournisseur et l’instance sont immuables. Créez une autre connexion pour changer de plateforme.</p>{% endif %}
             </fieldset>
 
-            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
-                <legend class="exo-section-heading">02 · Sécuriser l’accès</legend>
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6" data-wizard-target="step" data-step-invalid="{{ (form.token.vars.valid) ? 'false' : 'true' }}">
+                <legend class="exo-section-heading" tabindex="-1">02 · Sécuriser l’accès</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Le jeton est chiffré et ne sera jamais réaffiché. Utilisez uniquement les permissions nécessaires aux repositories autorisés.</p>
                 {{ _self.field(form.token, connection ? 'Laissez ce champ vide pour conserver le jeton actuel. Renseignez un nouveau jeton uniquement pour le remplacer.' : 'Fournissez un jeton permettant la lecture des repositories sélectionnés. La création d’issues nécessite un droit supplémentaire.', 'Jeton d’accès') }}
             </fieldset>
 
-            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
-                <legend class="exo-section-heading">03 · Choisir le périmètre</legend>
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6" data-wizard-target="step" data-step-invalid="{{ (form.organizations.vars.valid and form.includedRepositories.vars.valid and form.excludedRepositories.vars.valid and form.branch.vars.valid) ? 'false' : 'true' }}">
+                <legend class="exo-section-heading" tabindex="-1">03 · Choisir le périmètre</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Limitez la découverte aux applications qui vous concernent. Séparez les différentes valeurs par des virgules.</p>
                 <div class="exo-form-grid grid gap-5 sm:grid-cols-2">
                     <div class="sm:col-span-2">{{ _self.field(form.organizations, 'Organisations GitHub ou chemins de groupes GitLab. Un champ vide autorise tous les repositories accessibles au jeton.') }}</div>
@@ -39,15 +40,19 @@
                 {% if connection %}<p class="mt-4 text-sm text-muted">Modifier les organisations suspend la surveillance des repositories déjà importés jusqu’à une nouvelle synchronisation.</p>{% endif %}
             </fieldset>
 
-            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
-                <legend class="exo-section-heading">04 · Planifier la synchronisation</legend>
+            <fieldset class="exo-fieldset mt-7 border-t border-line pt-6" data-wizard-target="step" data-step-invalid="{{ (form.frequencyHours.vars.valid and form.active.vars.valid) ? 'false' : 'true' }}">
+                <legend class="exo-section-heading" tabindex="-1">04 · Planifier la synchronisation</legend>
                 <div class="exo-form-grid mt-4 grid items-start gap-5 sm:grid-cols-2">
                     {{ _self.field(form.frequencyHours, 'De 1 à 720 heures. La fréquence des analyses se règle séparément dans les paramètres.') }}
                     <div class="rounded-lg border border-line bg-canvas p-4">{{ form_row(form.active) }}<p class="mt-2 text-sm text-muted">Une connexion désactivée conserve son historique et ne lance plus de nouveaux traitements.</p></div>
                 </div>
             </fieldset>
             <div class="mt-7 flex flex-wrap items-center gap-3 border-t border-line pt-6">
-                <button type="submit" class="exo-btn" data-turbo-submits-with="Enregistrement…">Enregistrer la connexion</button>
+                {% if not connection %}
+                    <button type="button" class="exo-btn exo-btn-alt" data-wizard-target="navigation previous" data-action="wizard#previous" hidden>Précédent</button>
+                    <button type="button" class="exo-btn" data-wizard-target="navigation next" data-action="wizard#next" hidden>Suivant</button>
+                {% endif %}
+                <button type="submit" class="exo-btn" data-wizard-target="save" data-turbo-submits-with="Enregistrement…">Enregistrer la connexion</button>
                 <a class="exo-btn exo-btn-alt" href="{{ connection ? path('app_connection',{id:connection.id}) : path('app_connections') }}">Annuler</a>
             </div>
             {{ form_end(form) }}
