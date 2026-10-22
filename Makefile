@@ -6,9 +6,13 @@ NODE = docker run --rm --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$(CURDIR):/
 .PHONY: help install up down build test lint phpstan cs-check cs-fix quality migrate env-checker frontend worker
 help: ## Afficher les commandes
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "%-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-install: build up ## Installer dépendances et initialiser la base locale
+install: build ## Installer dépendances et initialiser la base locale
+	$(DC) up -d --wait database php
 	$(PHP) composer install --no-interaction
+	$(PHP) php scripts/initialize-secrets.php
+	$(DC) up -d --wait --force-recreate php
 	$(MAKE) frontend migrate
+	$(MAKE) up
 up: ## Démarrer les services (volumes conservés)
 	$(DC) up -d --wait php web database
 down: ## Arrêter les services sans supprimer les données
@@ -20,8 +24,10 @@ frontend: ## Installer et compiler le thème
 	$(NODE) npm run check
 	$(NODE) npm run build
 worker: ## Démarrer le worker après migrations
-	$(DC) --profile worker up -d worker
-test: ## Exécuter PHPUnit
+	$(DC) --profile worker up -d worker scheduler
+test: ## Préparer la base isolée et exécuter PHPUnit
+	$(PHP) php bin/console doctrine:database:create --env=test --if-not-exists
+	$(PHP) php bin/console doctrine:migrations:migrate --env=test --no-interaction --allow-no-migration
 	$(PHP) vendor/bin/phpunit
 lint: ## Vérifier manifestes et configuration Symfony
 	$(PHP) composer validate --strict
