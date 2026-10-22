@@ -15,3 +15,9 @@ Références : [Symfony UX Turbo](https://symfony.com/bundles/ux-turbo/current/i
 ## Utilisation
 
 Les liens internes remplacent la page avec une barre de progression, sans recharger tout le document. L’aperçu d’une issue apparaît au niveau des anomalies sélectionnées ; la création demande toujours une confirmation explicite. Les protections CSRF et les permissions restent vérifiées par le serveur.
+
+## Filtres et pagination
+
+Dans le catalogue et les alertes, la recherche se lance 400 ms après la saisie et les listes déroulantes s’appliquent immédiatement. Le bouton « Filtrer » reste utilisable au clavier et sans JavaScript. Seuls les résultats sont remplacés : le champ de saisie conserve son focus. La pagination garde les filtres et l’identifiant d’application dans ses liens ; les détails sortent du cadre de résultats. L’URL reflète la recherche pour la partager et utiliser les boutons précédent/suivant du navigateur.
+
+Les boutons d’enregistrement des connexions et paramètres indiquent l’envoi en cours. Une validation refusée reste affichée dans le formulaire et les écritures réussies suivent leur redirection serveur habituelle.

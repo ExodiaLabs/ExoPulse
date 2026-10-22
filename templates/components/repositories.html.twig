@@ -13,7 +13,7 @@
 {% for repository in repositories %}
 <tr class="border-t border-line">
 <td class="p-3">
-<a class="font-bold text-primary underline" href="{{ path('app_application', {id:repository.id}) }}">{{ repository.name }}</a>
+<a class="font-bold text-primary underline" data-turbo-frame="_top" href="{{ path('app_application', {id:repository.id}) }}">{{ repository.name }}</a>
 {% if repository.archived %}<span class="block text-xs text-muted">Archivé</span>
 {% endif %}
 {% if not repository.accessible %}<span class="block text-xs text-danger">Inaccessible</span>

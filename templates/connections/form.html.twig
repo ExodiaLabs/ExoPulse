@@ -47,7 +47,7 @@
                 </div>
             </fieldset>
             <div class="mt-7 flex flex-wrap items-center gap-3 border-t border-line pt-6">
-                <button type="submit" class="exo-btn">Enregistrer la connexion</button>
+                <button type="submit" class="exo-btn" data-turbo-submits-with="Enregistrement…">Enregistrer la connexion</button>
                 <a class="exo-btn exo-btn-alt" href="{{ connection ? path('app_connection',{id:connection.id}) : path('app_connections') }}">Annuler</a>
             </div>
             {{ form_end(form) }}
