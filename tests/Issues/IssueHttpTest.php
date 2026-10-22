@@ -54,8 +54,9 @@ final class IssueHttpTest extends WebTestCase
         $crawler = $this->client->request('GET', '/applications/'.$finding->repository->id);
         self::assertResponseIsSuccessful();
         $token = $crawler->filter('form[action="/findings/issues/preview"] input[name="_token"]')->attr('value');
-        $this->client->request('POST', '/findings/issues/preview', ['_token' => $token, 'findings' => [$finding->id]]);
+        $this->client->request('POST', '/findings/issues/preview', ['_token' => $token, 'findings' => [$finding->id]], server: ['HTTP_TURBO_FRAME' => 'issue-planning', 'HTTP_ACCEPT' => 'text/vnd.turbo-stream.html, text/html']);
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('turbo-frame#issue-planning form[data-turbo-frame="_top"]');
         self::assertSelectorExists('form[action="/findings/issues"] textarea[name="body"]');
         self::assertSelectorTextContains('textarea[name="body"]', '## Critères');
         self::assertSelectorExists('input[name="findings[]"]');
@@ -116,6 +117,15 @@ final class IssueHttpTest extends WebTestCase
         }
         $this->client->request('POST', '/findings/issues/preview', ['_token' => $token, 'findings' => ['00000000-0000-4000-8000-000000000000']]);
         self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testLoginRequestsAFullVisitAndPrivateSnapshotsAreDisabled(): void
+    {
+        $this->client->request('GET', '/login');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('meta[name="turbo-visit-control"][content="reload"]');
+        self::assertSelectorExists('meta[name="turbo-cache-control"][content="no-cache"]');
+        self::assertSelectorExists('form[data-turbo="false"] input[type="password"]');
     }
 
     private function finding(): Finding

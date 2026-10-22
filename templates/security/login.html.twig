@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}Connexion{% endblock %}
+{% block navigation_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 {% block layout %}
 <main id="main" class="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-5 py-10" tabindex="-1">
     <div class="flex items-center justify-between gap-3">
@@ -11,7 +12,7 @@
         <h1 id="login-title" class="mt-2 text-2xl font-extrabold">Connexion</h1>
         <p class="mt-2 text-sm text-muted">Gardez le pouls de votre parc applicatif.</p>
         {% if error %}<p id="login-error" class="mt-5 rounded-control border border-danger p-3 text-sm text-danger" role="alert">Identifiants incorrects ou connexion impossible. Réessayez.</p>{% endif %}
-        <form action="{{ path('app_login') }}" method="post" class="mt-6 space-y-5"{% if error %} aria-describedby="login-error"{% endif %}>
+        <form data-turbo="false" action="{{ path('app_login') }}" method="post" class="mt-6 space-y-5"{% if error %} aria-describedby="login-error"{% endif %}>
             <div>
                 <label for="username" class="mb-2 block text-sm font-semibold">Identifiant</label>
                 <input id="username" name="_username" value="{{ last_username }}" class="exo-input" autocomplete="username" required autofocus>

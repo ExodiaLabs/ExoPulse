@@ -28,7 +28,7 @@
     </nav>
     <div class="exo-sidebar-footer">
         <p class="exo-session"><span aria-hidden="true"></span>Espace sécurisé</p>
-        <form action="{{ path('app_logout') }}" method="post">
+        <form data-turbo="false" action="{{ path('app_logout') }}" method="post">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
             <button type="submit" class="exo-nav w-full">{{ icon('logout') }}Se déconnecter</button>
         </form>

@@ -2,8 +2,9 @@
 {% block title %}Prévisualiser une issue{% endblock %}
 {% block page_title %}Prévisualiser une issue{% endblock %}
 {% block body %}
+<turbo-frame id="issue-planning" target="_top">
 <section class="exo-card p-5">
-<h2 class="font-bold">{{ draft.repository.name }}</h2>
+<h2 class="font-bold">Prévisualisation de l’issue · {{ draft.repository.name }}</h2>
 <p class="my-3 text-sm text-muted">{{ draft.findings|length }} constat(s) sélectionné(s). Vérifiez les versions cibles et les compatibilités avant de confirmer.</p>
 {% if draft.existingIssue and draft.existingIssue.status != 'failed' %}
 <p class="my-4" role="status">Au moins un constat est déjà associé à une issue, ou une création est en cours ou incertaine. Aucune nouvelle issue ne sera créée pour cette sélection. Ajustez la sélection pour traiter les constats restants.</p>
@@ -11,14 +12,15 @@
 <a class="exo-btn exo-btn-alt" href="{{ path('app_application',{id:draft.repository.id}) }}">Retour à l’application</a>
 {% else %}
 {% if draft.existingIssue %}<p class="my-3" role="status">La tentative précédente a été refusée par le fournisseur. Une nouvelle confirmation relancera la création ; vérifiez d’abord les permissions et le quota.</p>{% endif %}
-<form method="post" action="{{ path('app_issues_create') }}" class="grid gap-4">
+<form data-turbo-frame="_top" method="post" action="{{ path('app_issues_create') }}" class="grid gap-4">
 <input type="hidden" name="_token" value="{{ csrf_token('issue-create') }}">
 {% for finding in draft.findings %}<input type="hidden" name="findings[]" value="{{ finding.id }}">{% endfor %}
-<label class="grid gap-2">Titre<input class="exo-input" name="title" value="{{ draft.title }}" required maxlength="255"></label>
+<label class="grid gap-2">Titre<input class="exo-input" name="title" autofocus value="{{ draft.title }}" required maxlength="255"></label>
 <label class="grid gap-2">Contenu Markdown<textarea class="exo-input" name="body" rows="22" required maxlength="60000">{{ draft.body }}</textarea></label>
 <p class="text-sm text-muted">Cette confirmation crée une issue sur le fournisseur Git avec les droits de la connexion. Aucun code du repository n’est exécuté.</p>
-<div class="flex flex-wrap gap-3"><button class="exo-btn">Confirmer la création manuelle</button><a class="exo-btn exo-btn-alt" href="{{ path('app_application',{id:draft.repository.id}) }}">Annuler</a></div>
+<div class="flex flex-wrap gap-3"><button class="exo-btn" data-turbo-submits-with="Création…">Confirmer la création manuelle</button><a class="exo-btn exo-btn-alt" href="{{ path('app_application',{id:draft.repository.id}) }}">Annuler</a></div>
 </form>
 {% endif %}
 </section>
+</turbo-frame>
 {% endblock %}

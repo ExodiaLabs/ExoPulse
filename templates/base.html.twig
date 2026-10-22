@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="turbo-cache-control" content="no-cache">
+    {% block navigation_meta %}{% endblock %}
     <title>{% block title %}ExoPulse{% endblock %} · Exodia</title>
-    <link rel="stylesheet" href="{{ asset('build/app.css') }}">
-    <script src="{{ asset('build/app.js') }}" defer></script>
+    <link rel="stylesheet" data-turbo-track="reload" href="{{ asset('build/app.css') }}">
+    <script data-turbo-track="reload" src="{{ asset('build/app.js') }}" defer></script>
 </head>
-<body data-controller="theme">
+<body data-controller="theme" data-turbo-prefetch="false">
 <a href="#main" class="exo-btn exo-skip">Aller au contenu</a>
 {% block layout %}
 <div class="exo-layout min-h-screen md:flex">
@@ -21,9 +23,11 @@
             </div>
             <div class="flex flex-wrap items-center gap-3">{% block page_actions %}{% endblock %}{% include 'components/theme_toggle.html.twig' %}</div>
         </header>
+        {% if app.request is not defined or not app.request.headers.has('Turbo-Frame') %}
         {% for type,messages in app.flashes %}
             {% for message in messages %}<div class="exo-flash exo-card mb-4 p-4 {{ type == 'error' ? 'text-danger' : 'text-success' }}" role="{{ type == 'error' ? 'alert' : 'status' }}">{{ message }}</div>{% endfor %}
         {% endfor %}
+        {% endif %}
         {% block body %}{% endblock %}
         <footer class="mt-7 text-xs text-muted">ExoPulse · Supervision de la santé technique du parc applicatif</footer>
     </main>
