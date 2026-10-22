@@ -1,36 +1,41 @@
 {% from 'components/icons.html.twig' import icon %}
-<aside class="exo-sidebar shrink-0 p-4 md:w-60" aria-label="ExoPulse">
-    <a href="{{ path('app_dashboard') }}" class="exo-brand">
-        <span class="exo-gradient exo-brand-mark" aria-hidden="true">◆</span>
-        <span>ExoPulse<small>PAR EXODIA</small></span>
-    </a>
-    <p class="exo-nav-label">Votre espace</p>
-    <nav class="exo-nav-list" aria-label="Navigation principale">
-        {% set links = [
-            ['app_dashboard', 'dashboard', 'Tableau de bord'],
-            ['app_applications', 'applications', 'Applications'],
-            ['app_history', 'history', 'Historique'],
-            ['app_findings', 'alerts', 'Alertes'],
-            ['app_connections', 'connections', 'Connexions'],
-            ['app_settings', 'settings', 'Paramètres']
-        ] %}
-        {% for link in links %}
-            {% set active = app.current_route == link[0]
-                or (link[0] == 'app_applications' and (app.current_route starts with 'app_application' or app.current_route == 'app_scan'))
-                or (link[0] == 'app_connections' and app.current_route starts with 'app_connection')
-                or (link[0] == 'app_findings' and app.current_route starts with 'app_issues') %}
-            {% if link[0] not in ['app_connections', 'app_settings'] or is_granted('ROLE_ADMIN') %}
-                <a class="exo-nav" href="{{ path(link[0]) }}"{% if active %} aria-current="page"{% endif %}>
-                    {{ icon(link[1]) }}<span>{{ link[2] }}</span>
-                </a>
-            {% endif %}
-        {% endfor %}
-    </nav>
-    <div class="exo-sidebar-footer">
-        <p class="exo-session"><span aria-hidden="true"></span>Espace sécurisé</p>
-        <form data-turbo="false" action="{{ path('app_logout') }}" method="post">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-            <button type="submit" class="exo-nav w-full">{{ icon('logout') }}Se déconnecter</button>
-        </form>
+<aside class="exo-sidebar shrink-0 p-3 md:p-4 md:w-60" aria-label="ExoPulse" data-controller="navigation" data-action="keydown.esc->navigation#close">
+    <div class="exo-sidebar-header">
+        <a href="{{ path('app_dashboard') }}" class="exo-brand">
+            <span class="exo-gradient exo-brand-mark" aria-hidden="true">◆</span>
+            <span>ExoPulse<small>PAR EXODIA</small></span>
+        </a>
+        <button type="button" class="exo-menu-toggle" aria-controls="primary-navigation" aria-expanded="true" data-navigation-target="button" data-action="navigation#toggle" hidden><span aria-hidden="true">☰</span> Menu</button>
+    </div>
+    <div id="primary-navigation" class="exo-navigation-panel" data-navigation-target="panel">
+        <p class="exo-nav-label">Votre espace</p>
+        <nav class="exo-nav-list" aria-label="Navigation principale">
+            {% set links = [
+                ['app_dashboard', 'dashboard', 'Tableau de bord'],
+                ['app_applications', 'applications', 'Applications'],
+                ['app_history', 'history', 'Historique'],
+                ['app_findings', 'alerts', 'Alertes'],
+                ['app_connections', 'connections', 'Connexions'],
+                ['app_settings', 'settings', 'Paramètres']
+            ] %}
+            {% for link in links %}
+                {% set active = app.current_route == link[0]
+                    or (link[0] == 'app_applications' and (app.current_route starts with 'app_application' or app.current_route == 'app_scan'))
+                    or (link[0] == 'app_connections' and app.current_route starts with 'app_connection')
+                    or (link[0] == 'app_findings' and app.current_route starts with 'app_issues') %}
+                {% if link[0] not in ['app_connections', 'app_settings'] or is_granted('ROLE_ADMIN') %}
+                    <a class="exo-nav" href="{{ path(link[0]) }}"{% if active %} aria-current="page"{% endif %}>
+                        {{ icon(link[1]) }}<span>{{ link[2] }}</span>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        <div class="exo-sidebar-footer">
+            <p class="exo-session"><span aria-hidden="true"></span>Espace sécurisé</p>
+            <form data-turbo="false" action="{{ path('app_logout') }}" method="post">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                <button type="submit" class="exo-nav w-full">{{ icon('logout') }}Se déconnecter</button>
+            </form>
+        </div>
     </div>
 </aside>

@@ -43,7 +43,7 @@
             <span class="text-xs text-muted">20 derniers traitements au maximum</span>
         </div>
         {% if jobs|length %}
-            <div class="overflow-x-auto">
+            <div class="exo-table-scroll overflow-x-auto" role="region" aria-label="Tableau · Synchronisations" tabindex="0">
                 <table class="exo-table w-full text-left text-sm">
                     <thead><tr><th class="p-4">Lancement</th><th class="p-4">État</th><th class="p-4">Repositories traités</th><th class="p-4">Échecs</th><th class="p-4">Fin du traitement</th></tr></thead>
                     <tbody>
