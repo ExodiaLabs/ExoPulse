@@ -1,0 +1,5 @@
+<div class="exo-tabs mb-6" role="tablist" aria-label="Sections des paramètres" data-tabs-target="list" hidden>
+    {% for id, label in {rhythm:'Rythme et conservation', privacy:'Confidentialité', score:'Score de santé'} %}
+        <button type="button" id="settings-tab-{{ id }}" role="tab" aria-controls="settings-{{ id }}" aria-selected="{{ loop.first ? 'true' : 'false' }}" tabindex="{{ loop.first ? '0' : '-1' }}" class="exo-tab" data-tabs-target="tab" data-action="click->tabs#select keydown->tabs#navigate">{{ label }}</button>
+    {% endfor %}
+</div>

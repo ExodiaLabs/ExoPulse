@@ -8,8 +8,10 @@
 {% block body %}
     <div class="grid items-start gap-6 xl:grid-cols-3">
         <section class="exo-card p-5 sm:p-7 xl:col-span-2" aria-label="Réglages des analyses">
-            {{ form_start(form) }}
+            {{ form_start(form, {attr:{'data-controller':'tabs', 'data-action':'submit->tabs#submit'}}) }}
+            {% include 'settings/_tabs.html.twig' %}
             {{ form_errors(form) }}
+            <section id="settings-rhythm" aria-labelledby="settings-tab-rhythm" data-tabs-target="panel" data-panel-invalid="{{ (form.frequencyHours.vars.valid and form.staleDays.vars.valid and form.retentionDays.vars.valid) ? 'false' : 'true' }}">
             <fieldset class="exo-fieldset">
                 <legend class="exo-section-heading">Rythme et conservation</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Des résultats réguliers, suffisamment récents et un historique conservé selon vos besoins.</p>
@@ -19,12 +21,16 @@
                     <div class="sm:col-span-2">{{ _self.field(form.retentionDays, 'De 1 à 3 650 jours. La purge de l’historique reste une opération manuelle ; les résultats courants sont conservés.') }}</div>
                 </div>
             </fieldset>
+            </section>
+            <section id="settings-privacy" aria-labelledby="settings-tab-privacy" data-tabs-target="panel" data-panel-invalid="{{ (form.externalEnrichment.vars.valid) ? 'false' : 'true' }}">
             <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
                 <legend class="exo-section-heading">Confidentialité des catalogues</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Choisissez explicitement si les informations de dépendances peuvent être enrichies à partir de sources publiques.</p>
                 {{ _self.field(form.externalEnrichment, form.externalEnrichment.vars.help) }}
                 <p class="mt-4 rounded-lg border border-line bg-canvas p-4 text-sm text-muted">Sans enrichissement externe, l’inventaire statique reste disponible. Les versions récentes et les cycles de vie non vérifiés sont signalés comme inconnus.</p>
             </fieldset>
+            </section>
+            <section id="settings-score" aria-labelledby="settings-tab-score" data-tabs-target="panel" data-panel-invalid="{{ (form.end_of_support.vars.valid and form.end_of_maintenance.vars.valid and form.major.vars.valid and form.minor.vars.valid and form.patch.vars.valid) ? 'false' : 'true' }}">
             <fieldset class="exo-fieldset mt-7 border-t border-line pt-6">
                 <legend class="exo-section-heading">Pondération du score</legend>
                 <p class="mb-5 text-sm leading-relaxed text-muted">Définissez la pénalité de chaque constat confirmé, entre 0 et 100 points.</p>
@@ -36,6 +42,7 @@
                     {{ _self.field(form.patch, 'Une nouvelle version corrective est disponible.') }}
                 </div>
             </fieldset>
+            </section>
             <div class="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
                 <p class="max-w-sm text-xs leading-relaxed text-muted">Les réglages s’appliquent aux prochains traitements. Les résultats historiques restent conservés.</p>
                 <button type="submit" class="exo-btn" data-turbo-submits-with="Enregistrement…">Enregistrer les paramètres</button>

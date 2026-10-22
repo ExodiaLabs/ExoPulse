@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\UI;
 
 use App\Application\Service\ConfigurationStore;
+use App\Domain\Model\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -40,6 +41,10 @@ final class SettingsHttpTest extends WebTestCase
     {
         $this->client->request('GET', '/settings');
         self::assertResponseIsSuccessful();
+        self::assertSelectorCount(3, 'form[data-controller~="tabs"] [data-tabs-target~="panel"]');
+        self::assertSelectorNotExists('[data-tabs-target~="panel"][hidden], [data-tabs-target~="panel"][aria-hidden="true"], [data-tabs-target~="panel"].hidden');
+        self::assertSelectorCount(1, 'form[data-controller~="tabs"] button[type="submit"]');
+        self::assertSelectorExists('form[data-controller~="tabs"] button[type="submit"]:not([hidden])');
         $this->client->submitForm('Enregistrer les paramètres', ['settings[frequencyHours]' => '12', 'settings[end_of_support]' => '45', 'settings[externalEnrichment]' => '1']);
         self::assertResponseStatusCodeSame(303);
         $store = self::getContainer()->get(ConfigurationStore::class);
@@ -54,6 +59,38 @@ final class SettingsHttpTest extends WebTestCase
         $this->client->request('POST', '/settings', ['settings' => array_replace(ConfigurationStore::DEFAULTS, ['frequencyHours' => 20])]);
         self::assertResponseStatusCodeSame(422);
         self::assertSame(12, $store->values()['frequencyHours']);
+    }
+
+    public function testInvalidScorePanelPreservesOtherSectionsWithoutSavingConfiguration(): void
+    {
+        $store = self::getContainer()->get(ConfigurationStore::class);
+        self::assertInstanceOf(ConfigurationStore::class, $store);
+        $before = $store->values();
+        $beforeCount = $this->em->getRepository(Configuration::class)->count();
+        $this->client->request('GET', '/settings');
+        $crawler = $this->client->submitForm('Enregistrer les paramètres', [
+            'settings[frequencyHours]' => '36',
+            'settings[staleDays]' => '5',
+            'settings[retentionDays]' => '180',
+            'settings[externalEnrichment]' => '1',
+            'settings[end_of_support]' => '60',
+            'settings[major]' => '101',
+            'settings[minor]' => '7',
+        ]);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorCount(1, '[data-tabs-target~="panel"][data-panel-invalid="true"]');
+        self::assertSelectorExists('#settings-score[data-panel-invalid="true"] input[name="settings[major]"]');
+        self::assertSelectorExists('#settings-rhythm[data-panel-invalid="false"]');
+        self::assertSelectorExists('#settings-privacy[data-panel-invalid="false"]');
+        self::assertSelectorCount(3, 'form[data-controller~="tabs"] [data-tabs-target~="panel"]');
+        self::assertSelectorNotExists('[data-tabs-target~="panel"][hidden], [data-tabs-target~="panel"][aria-hidden="true"], [data-tabs-target~="panel"].hidden');
+        foreach (['frequencyHours' => '36', 'staleDays' => '5', 'retentionDays' => '180', 'end_of_support' => '60', 'major' => '101', 'minor' => '7'] as $field => $value) {
+            self::assertSame($value, $crawler->filter('input[name="settings['.$field.']"]')->attr('value'));
+        }
+        self::assertSame('1', $crawler->filter('select[name="settings[externalEnrichment]"] option[selected]')->attr('value'));
+        $this->em->clear();
+        self::assertSame($before, $store->values());
+        self::assertSame($beforeCount, $this->em->getRepository(Configuration::class)->count());
     }
 
     public function testReaderCannotChangeSettings(): void

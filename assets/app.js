@@ -2,6 +2,7 @@ import * as Turbo from '@hotwired/turbo';
 import { Application } from '@hotwired/stimulus';
 import FilterController from './controllers/filter_controller.js';
 import PollController from './controllers/poll_controller.js';
+import TabsController from './controllers/tabs_controller.js';
 import ThemeController from './controllers/theme_controller.js';
 import WizardController from './controllers/wizard_controller.js';
 
@@ -12,6 +13,7 @@ application.register('theme', ThemeController);
 application.register('filter', FilterController);
 application.register('poll', PollController);
 application.register('wizard', WizardController);
+application.register('tabs', TabsController);
 
 // Render an already-received error page without replaying the original POST.
 document.addEventListener('turbo:frame-missing', (event) => {

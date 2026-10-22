@@ -107,3 +107,10 @@
   .exo-wizard-step[aria-current="step"] { color: var(--exo-primary); font-weight: 700; }
   .exo-wizard-step[aria-current="step"] span { background: var(--exo-primary-soft); border-color: var(--exo-primary); }
 }
+
+@layer components {
+  .exo-tabs { display: flex; flex-wrap: wrap; gap: .5rem; border-bottom: 1px solid var(--exo-border); padding-bottom: .75rem; }
+  .exo-tab { border: 1px solid transparent; border-radius: var(--radius-control); background: transparent; color: var(--exo-muted); padding: .65rem .9rem; font-size: .875rem; font-weight: 650; cursor: pointer; }
+  .exo-tab:hover { color: var(--exo-text); background: var(--exo-primary-soft); }
+  .exo-tab[aria-selected="true"] { color: var(--exo-primary); border-color: var(--exo-primary); background: var(--exo-primary-soft); }
+}
