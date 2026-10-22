@@ -13,7 +13,8 @@ framework:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
                     queue_name: failed
-        routing: {}
+        routing:
+            'App\Application\Message\PortfolioMessage': async
 
 when@test:
     framework:

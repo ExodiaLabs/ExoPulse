@@ -27,3 +27,10 @@ services:
         class: Symfony\Contracts\HttpClient\HttpClientInterface
         factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
         public: true
+
+    exopulse.lock_store:
+        class: Symfony\Component\Lock\Store\DoctrineDbalPostgreSqlStore
+        arguments: ['@doctrine.dbal.default_connection']
+
+    Symfony\Component\Lock\LockFactory:
+        arguments: ['@exopulse.lock_store']
