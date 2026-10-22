@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ title|default('ExoPulse') }}{% endblock %}
+{% block page_title %}{{ title|default('ExoPulse') }}{% endblock %}
+{% block page_subtitle %}{{ subtitle|default('Gardez le pouls de votre parc applicatif.') }}{% endblock %}
+{% block body %}
+    <section class="exo-card p-5">
+        {% include 'components/empty_state.html.twig' with {title: title|default('Bientôt disponible'), message: message|default('Cette fonctionnalité sera disponible dans un prochain incrément.')} only %}
+    </section>
+{% endblock %}

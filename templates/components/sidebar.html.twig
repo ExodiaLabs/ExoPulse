@@ -1,0 +1,27 @@
+<aside class="exo-sidebar shrink-0 p-4 md:w-60" aria-label="ExoPulse">
+    <a href="{{ path('app_dashboard') }}" class="mb-7 flex items-center gap-3 text-2xl font-extrabold">
+        <span class="exo-gradient rounded-lg p-2 text-white" aria-hidden="true">◆</span> ExoPulse
+    </a>
+    <nav class="flex gap-1 overflow-x-auto md:flex-col" aria-label="Navigation principale">
+        {% set links = [
+            ['app_dashboard', '◫', 'Tableau de bord'],
+            ['app_applications', '▤', 'Applications'],
+            ['app_history', '▥', 'Historique'],
+            ['app_findings', '⚑', 'Alertes'],
+            ['app_connections', '⇄', 'Connexions'],
+            ['app_settings', '⚙', 'Paramètres']
+        ] %}
+        {% for link in links %}
+            <a class="exo-nav" href="{{ path(link[0]) }}"{% if app.current_route == link[0] %} aria-current="page"{% endif %}>
+                <span aria-hidden="true">{{ link[1] }}</span>{{ link[2] }}
+            </a>
+        {% endfor %}
+    </nav>
+    <div class="mt-8 border-t border-white/20 pt-4 text-sm">
+        <p class="mb-3 text-white/75">Espace sécurisé</p>
+        <form action="{{ path('app_logout') }}" method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button type="submit" class="exo-nav w-full">Se déconnecter</button>
+        </form>
+    </div>
+</aside>

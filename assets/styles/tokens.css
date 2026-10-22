@@ -1,0 +1,33 @@
+/* Exodia foundations: independent from the application and Tailwind. */
+:root {
+  color-scheme: light;
+  --exo-primary: #7960A6;
+  --exo-primary-soft: #efe9f7;
+  --exo-lavender: #BBA9DC;
+  --exo-dark: #15111E;
+  --exo-light: #F5F2F9;
+  --exo-background: var(--exo-light);
+  --exo-card: #ffffff;
+  --exo-text: var(--exo-dark);
+  --exo-muted: #716b7c;
+  --exo-border: #e5dfee;
+  --exo-sidebar: var(--exo-dark);
+  --exo-sidebartext: var(--exo-light);
+  --exo-success: #15803d;
+  --exo-warning: #a65300;
+  --exo-danger: #c32340;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --exo-primary: #BBA9DC;
+  --exo-primary-soft: #31273f;
+  --exo-background: #111019;
+  --exo-card: #211d2c;
+  --exo-text: #f6f3f9;
+  --exo-muted: #bcb2cb;
+  --exo-border: #393246;
+  --exo-sidebar: #17121f;
+  --exo-success: #54d69c;
+  --exo-warning: #ffb267;
+  --exo-danger: #ff667e;
+}

@@ -1,0 +1,17 @@
+@theme inline {
+  --color-primary: var(--exo-primary);
+  --color-lavender: var(--exo-lavender);
+  --color-surface: var(--exo-card);
+  --color-canvas: var(--exo-background);
+  --color-ink: var(--exo-text);
+  --color-muted: var(--exo-muted);
+  --color-line: var(--exo-border);
+  --color-success: var(--exo-success);
+  --color-warning: var(--exo-warning);
+  --color-danger: var(--exo-danger);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 1rem;
+  --radius-control: .5625rem;
+  --shadow-card: 0 2px 8px rgb(21 17 30 / .03);
+  --spacing: .25rem;
+}

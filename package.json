@@ -1,0 +1,10 @@
+{
+  "name": "exopulse",
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -i assets/styles/app.css -o public/build/app.css --minify && esbuild assets/app.js --bundle --minify --outfile=public/build/app.js",
+    "check": "node --check assets/app.js && node --check assets/controllers/theme_controller.js"
+  },
+  "dependencies": {"@hotwired/stimulus": "^3.2.2"},
+  "devDependencies": {"@tailwindcss/cli": "^4.1.0", "tailwindcss": "^4.1.0", "esbuild": "^0.25.0"}
+}

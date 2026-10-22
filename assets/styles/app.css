@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./theme.css";
+@import "./components.css";
+@source "../../templates";
+@layer components {
+  .exo-sidebar { background: var(--exo-sidebar); color: var(--exo-sidebartext); }
+  .exo-skip { position: fixed; top: .5rem; left: .5rem; z-index: 10; transform: translateY(-200%); }
+  .exo-skip:focus { transform: translateY(0); }
+}
