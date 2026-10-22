@@ -14,7 +14,7 @@
 {% for scan in scans %}
 <tr class="border-t border-line">
 <td class="p-3">
-<a class="text-primary underline" href="{{ path('app_application_history', {id:scan.repository.id}) }}">{{ scan.repository.name }}</a>
+<a class="text-primary underline" data-turbo-frame="_top" href="{{ path('app_application_history', {id:scan.repository.id}) }}">{{ scan.repository.name }}</a>
 </td>
 <td class="p-3">{{ scan.createdAt|date('d/m/Y H:i') }}</td>
 <td class="p-3"><span class="exo-badge {{ scan.status == 'completed' ? 'text-success' : (scan.status == 'failed' ? 'text-danger' : (scan.status == 'partial' ? 'text-warning' : 'text-muted')) }}">{{ scanStates[scan.status]|default(scan.status) }}</span>{% if scan.lastError %}

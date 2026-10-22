@@ -33,7 +33,11 @@
             {% endfor %}
         </div>
     </section>
-    <section class="exo-card overflow-hidden" aria-label="Historique de synchronisation">
+    {% set refreshActive = jobs|filter(job => job.status in ['queued', 'running', 'retrying'])|length > 0 %}
+    <section class="exo-card overflow-hidden" aria-label="Historique de synchronisation" data-controller="poll" data-poll-url-value="{{ app.request.uri }}">
+        <div class="px-5 pt-5 sm:px-6">{% include 'components/poll_controls.html.twig' %}</div>
+        <turbo-frame id="connection-activity-{{ connection.id }}" data-turbo-action="advance" data-poll-target="frame">
+        <div data-poll-target="state" data-refresh-active="{{ refreshActive ? 'true' : 'false' }}">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line p-5 sm:p-6">
             <div><p class="exo-kicker">ACTIVITÉ RÉCENTE</p><h2 class="exo-section-heading mt-1">Historique de synchronisation</h2></div>
             <span class="text-xs text-muted">20 derniers traitements au maximum</span>
@@ -59,5 +63,7 @@
         {% else %}
             <div class="exo-empty px-5 py-10 text-center"><h3 class="font-bold">Aucune synchronisation lancée.</h3><p class="mx-auto mt-2 max-w-md text-sm text-muted">Testez d’abord l’accès à la plateforme, puis utilisez « Synchroniser » pour découvrir les repositories autorisés.</p></div>
         {% endif %}
+        </div>
+        </turbo-frame>
     </section>
 {% endblock %}
