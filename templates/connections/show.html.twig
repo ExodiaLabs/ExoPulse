@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ connection.name }}{% endblock %}
+{% block page_title %}{{ connection.name }}{% endblock %}
+{% block body %}
+<section class="exo-card mb-5 p-5">
+<p>{{ connection.provider }} · {{ connection.baseUrl }}</p>
+<p class="mt-2 text-sm text-muted">{{ connection.active ? 'Active' : 'Désactivée' }} · {{ connection.status }} · Synchronisation toutes les {{ connection.frequencyHours }} heures</p>
+<p class="mt-2 text-sm text-muted">Dernière synchronisation : {{ connection.lastSyncedAt ? connection.lastSyncedAt|date('d/m/Y H:i') : 'Jamais' }}</p>
+<p class="mt-2 text-sm text-muted">Organisations : {{ connection.organizations|join(', ') ?: 'Toutes les organisations accessibles' }}</p>
+{% if connection.lastError %}
+<p class="mt-3 text-danger" role="alert">{{ connection.lastError }}</p>
+{% endif %}
+<div class="mt-5 flex flex-wrap gap-3">
+<a class="exo-btn exo-btn-alt" href="{{ path('app_connection_update',{id:connection.id}) }}">Modifier</a>
+{% for action,label in {test:'Tester la connexion',sync:'Synchroniser',disable:'Désactiver'} %}
+<form method="post" action="{{ path('app_connection_'~action,{id:connection.id}) }}">
+<input type="hidden" name="_token" value="{{ csrf_token(action~'-'~connection.id) }}">
+<button class="exo-btn exo-btn-alt">{{ label }}</button>
+</form>
+{% endfor %}</div>
+</section>
+<section class="exo-card p-5">
+<h2 class="mb-4 font-bold">Historique de synchronisation</h2>
+{% for job in jobs %}
+<article class="border-t border-line py-3">
+<p>{{ job.createdAt|date('d/m/Y H:i') }} · {{ job.status }} · {{ job.processed }} traité(s), {{ job.failed }} échec(s)</p>
+{% if job.lastError %}
+<p class="text-sm text-danger">{{ job.lastError }}</p>
+{% endif %}</article>
+{% else %}
+<p class="text-muted">Aucune synchronisation lancée.</p>
+{% endfor %}</section>
+{% endblock %}

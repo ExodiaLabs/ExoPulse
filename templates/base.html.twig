@@ -21,6 +21,9 @@
             </div>
             {% include 'components/theme_toggle.html.twig' %}
         </header>
+        {% for type,messages in app.flashes %}
+            {% for message in messages %}<div class="exo-card mb-4 p-4 {{ type == 'error' ? 'text-danger' : 'text-ink' }}" role="{{ type == 'error' ? 'alert' : 'status' }}">{{ message }}</div>{% endfor %}
+        {% endfor %}
         {% block body %}{% endblock %}
         <footer class="mt-7 text-xs text-muted">ExoPulse · Supervision de la santé technique du parc applicatif</footer>
     </main>
