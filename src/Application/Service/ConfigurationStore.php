@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class ConfigurationStore
 {
     private const ID = '00000000-0000-7000-8000-000000000001';
-    public const DEFAULTS = ['frequencyHours' => 24, 'staleDays' => 7, 'retentionDays' => 365, 'end_of_support' => 40, 'end_of_maintenance' => 10, 'major' => 10, 'minor' => 3, 'patch' => 1];
+    public const DEFAULTS = ['externalEnrichment' => 0, 'frequencyHours' => 24, 'staleDays' => 7, 'retentionDays' => 365, 'end_of_support' => 40, 'end_of_maintenance' => 10, 'major' => 10, 'minor' => 3, 'patch' => 1];
 
     public function __construct(private EntityManagerInterface $em)
     {
