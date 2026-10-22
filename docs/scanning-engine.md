@@ -31,8 +31,12 @@ Bonne santé : 80–100 ; intervention : 50–79 ; critique : 0–49. Inconnu et
 
 ## Conservation des risques
 
-Un scan complet peut résoudre les constats absents de sa branche. Un scan partiel, une panne de source ou une autre branche ne les efface pas. Une fermeture d’issue ne prouve aucune résolution. Le premier constat conserve sa date, ce qui rend visible l’ancienneté de l’obsolescence.
+Un scan complet peut résoudre les constats absents de sa branche. Un scan partiel, une panne de source ou une autre branche ne les efface pas par simple absence. Une [preuve positive de support](support-reconciliation.md) sur la même branche peut corriger le seul constat concerné, avec résolution stable, source, dates et confiance suffisantes. Une fermeture d’issue ne prouve aucune résolution. Le premier constat conserve sa date, ce qui rend visible l’ancienneté de l’obsolescence.
 
 Aucune base d’avis de vulnérabilités n’est intégrée. Une version ancienne ou hors support n’est jamais qualifiée de vulnérabilité confirmée. Les mises à jour majeures et cibles de support restent des recommandations à vérifier, pas une promesse de compatibilité.
 
 Voir [exécution, états et reprise](scan-execution.md), [catalogues](catalogs.md) et [gestion des issues](issues.md).
+
+## Patrimoine et priorisation
+
+Le [diagnostic technique](technical-portfolio.md) conserve les risques connus lorsque le score global manque. Le [catalogue et dashboard](technical-estate-ui.md) exposent legacy, risque, filtres et priorités avec leurs preuves. La [réanalyse du parc](portfolio-rescan.md) applique une évolution du moteur en créant de nouveaux scans.
