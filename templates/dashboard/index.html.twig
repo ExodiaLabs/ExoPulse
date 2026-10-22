@@ -1,34 +1,66 @@
 {% extends 'base.html.twig' %}
+{% from 'components/icons.html.twig' import icon %}
 {% block title %}Tableau de bord{% endblock %}
 {% block page_subtitle %}Vue d’ensemble de la santé technique du parc applicatif{% endblock %}
+{% block page_actions %}{% if is_granted('ROLE_ADMIN') %}<a class="exo-btn" href="{{ path('app_connection_new') }}">{{ icon('plus') }}Ajouter une connexion</a>{% endif %}{% endblock %}
 {% block body %}
+{% if stats.total == 0 %}
+    <section class="exo-welcome exo-card mb-6 p-5 md:p-7" aria-labelledby="welcome-title">
+        <p class="exo-kicker mb-2">Bienvenue dans votre espace de supervision</p>
+        <h2 id="welcome-title">Prenez le pouls de vos applications.</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">Votre parc est encore vide. Connectez votre plateforme Git pour découvrir vos applications et identifier les premières priorités de migration.</p>
+        <ol class="mt-5 grid gap-3 lg:grid-cols-3">
+            {% for title,description in {'Connectez votre plateforme':'GitHub ou GitLab, dans le cloud ou sur votre infrastructure.', 'Découvrez vos applications':'Testez la connexion, puis lancez une synchronisation.', 'Explorez les résultats':'Consultez les versions, les alertes et les recommandations.'} %}
+                <li class="exo-step"><span class="exo-step-number">{{ loop.index }}</span><div><p class="text-sm font-bold">{{ title }}</p><p class="mt-1 text-xs leading-relaxed text-muted">{{ description }}</p></div></li>
+            {% endfor %}
+        </ol>
+        {% if is_granted('ROLE_ADMIN') %}<a class="exo-btn mt-5" href="{{ path('app_connections') }}">Configurer mes connexions {{ icon('arrow') }}</a>{% else %}<p class="mt-5 text-sm text-muted">Votre administrateur peut raccorder les plateformes de votre équipe.</p>{% endif %}
+    </section>
+{% endif %}
 <section class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Indicateurs du parc">
-{% for key,label in {total:'Applications',healthy:'En bonne santé',attention:'À surveiller',critical:'Critiques',outdated:'Dépendances obsolètes'} %}
-<article class="exo-card p-5">
-<h2 class="exo-eyebrow">{{ label }}</h2>
-<p class="mt-2 text-3xl font-bold">{{ attribute(stats,key) }}</p>
-</article>
-{% endfor %}</section>
-<p class="mb-5 text-sm text-muted">{{ stats.unknown }} application(s) sans évaluation actuelle (absente ou périmée) · {{ stats.unsupported }} technologie(s) hors support. Un score inconnu ne signifie pas un score nul.</p>
-<section class="mb-5 grid gap-4 lg:grid-cols-2">
-<article class="exo-card p-5">
-<h2 class="mb-4 font-bold">Évolution du score moyen</h2>
-{% include 'components/health_trend.html.twig' with {trend:trend} only %}
-{% for point in trend %}
-<p class="border-t border-line py-2 text-sm">{{ point.date }} : {{ point.score is not null ? point.score ~ '/100' : 'Non évalué' }} · {{ point.count }} analyse(s)</p>
-{% else %}
-<p class="text-sm text-muted">Aucune analyse disponible pour afficher une évolution.</p>
-{% endfor %}</article>
-<article class="exo-card p-5">
-<h2 class="mb-3 font-bold">Comprendre les indicateurs</h2>
-<p class="text-sm leading-relaxed text-muted">Les scores reposent sur les constats confirmés. La confiance et la couverture restent visibles séparément. L’obsolescence n’est pas une vulnérabilité confirmée.</p>
-<a class="mt-4 inline-block text-primary underline" href="{{ path('app_settings') }}">Consulter les pondérations</a>
-</article>
+    {% set metrics = {
+        total: ['Applications', 'text-primary', 'Dépôts inventoriés'],
+        healthy: ['En bonne santé', 'text-success', 'Score de 80 à 100'],
+        attention: ['À surveiller', 'text-warning', 'Score de 50 à 79'],
+        critical: ['Critiques', 'text-danger', 'Score inférieur à 50'],
+        outdated: ['Dépendances obsolètes', 'text-primary', 'Constats de mises à jour actifs']
+    } %}
+    {% for key,metric in metrics %}
+        <article class="exo-stat exo-card p-5 {{ metric[1] }}">
+            <h2 class="exo-eyebrow">{{ metric[0] }}</h2>
+            <p class="exo-stat-value">{{ attribute(stats,key) }}</p>
+            <span class="exo-stat-description">{{ metric[2] }}</span>
+        </article>
+    {% endfor %}
 </section>
-<section class="exo-card mb-5 p-5">
-<h2 class="mb-4 font-bold">Applications prioritaires</h2>
-{% include 'components/repositories.html.twig' with {repositories:priorities} only %}</section>
-<section class="exo-card p-5">
-<h2 class="mb-4 font-bold">Dernières analyses</h2>
-{% include 'components/scans.html.twig' with {scans:recentScans} only %}</section>
+<div class="mb-6 flex flex-wrap items-center gap-3 text-xs text-muted">
+    <span class="exo-badge text-muted">{{ stats.unknown }} sans évaluation actuelle</span>
+    <span class="exo-badge text-danger">{{ stats.unsupported }} technologie(s) hors support</span>
+    <span>Un score inconnu ne signifie pas un score nul.</span>
+</div>
+<section class="mb-5 grid gap-4 lg:grid-cols-2">
+    <article class="exo-card p-5 md:p-6">
+        <div class="exo-section-heading"><h2>Évolution du score moyen</h2><span class="exo-badge text-primary">Analyses complètes</span></div>
+        {% include 'components/health_trend.html.twig' with {trend:trend} only %}
+        {% for point in trend %}
+            <p class="border-t border-line py-2 text-sm">{{ point.date }} : {{ point.score is not null ? point.score ~ '/100' : 'Non évalué' }} · {{ point.count }} analyse(s)</p>
+        {% else %}
+            <div class="py-7 text-center"><p class="font-semibold">Le suivi commence avec votre première analyse.</p><p class="mt-2 text-sm text-muted">Aucune analyse disponible pour afficher une évolution.</p></div>
+        {% endfor %}
+    </article>
+    <article class="exo-card p-5 md:p-6">
+        <div class="exo-section-heading"><h2>Comprendre les indicateurs</h2>{{ icon('pulse') }}</div>
+        <p class="text-sm leading-relaxed text-muted">Les scores reposent sur les constats confirmés. La confiance et la couverture restent visibles séparément. L’obsolescence n’est pas une vulnérabilité confirmée.</p>
+        <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2"><div><dt class="font-semibold">Couverture</dt><dd class="mt-1 text-muted">Les versions que l’analyse a pu identifier.</dd></div><div><dt class="font-semibold">Confiance</dt><dd class="mt-1 text-muted">Les vérifications confirmées par les sources.</dd></div></dl>
+        {% if is_granted('ROLE_ADMIN') %}<a class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary underline" href="{{ path('app_settings') }}">Consulter les pondérations {{ icon('arrow') }}</a>{% endif %}
+    </article>
+</section>
+<section class="exo-card mb-5 p-5 md:p-6">
+    <div class="exo-section-heading"><h2>Applications prioritaires</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_applications', {sort:'score'}) }}">Voir les applications</a></div>
+    {% include 'components/repositories.html.twig' with {repositories:priorities} only %}
+</section>
+<section class="exo-card p-5 md:p-6">
+    <div class="exo-section-heading"><h2>Dernières analyses</h2><a class="text-sm font-semibold text-primary underline" href="{{ path('app_history') }}">Tout l’historique</a></div>
+    {% include 'components/scans.html.twig' with {scans:recentScans} only %}
+</section>
 {% endblock %}

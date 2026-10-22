@@ -22,3 +22,73 @@
   .exo-eyebrow { font-size: .75rem; font-weight: 700; color: var(--exo-muted); }
   .exo-gradient { background: linear-gradient(140deg, #B274F2, #7041D1, #543680); }
 }
+
+@layer components {
+  .exo-icon { width: 1.2rem; height: 1.2rem; flex-shrink: 0; }
+  .exo-brand { display: flex; align-items: center; gap: .8rem; margin: .25rem 0 2.2rem; font-size: 1.35rem; font-weight: 800; letter-spacing: -.035em; text-decoration: none; }
+  .exo-brand small { display: block; margin-top: .15rem; font-size: .6rem; letter-spacing: .18em; color: #BBA9DC; }
+  .exo-brand-mark { display: grid; place-items: center; width: 2.7rem; height: 2.7rem; border-radius: .85rem; color: white; box-shadow: 0 4px 16px #0002; }
+  .exo-brand-mark .exo-icon { width: 1.65rem; height: 1.65rem; }
+  .exo-sidebar { display: flex; flex-direction: column; }
+  .exo-nav-label { margin: 0 .875rem .65rem; font-size: .65rem; text-transform: uppercase; letter-spacing: .14em; color: #BBA9DC; }
+  .exo-nav-list { display: flex; gap: .3rem; overflow-x: auto; padding: .2rem; }
+  .exo-nav { font-size: .9rem; min-height: 2.85rem; transition: background-color .15s; }
+  .exo-nav[aria-current="page"] { box-shadow: inset 3px 0 #BBA9DC; }
+  .exo-sidebar-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ffffff26; }
+  .exo-session { display: flex; align-items: center; gap: .5rem; margin: 0 .875rem .65rem; font-size: .75rem; color: #d5cce2; }
+  .exo-session span { width: .4rem; height: .4rem; border-radius: 50%; background: #54d69c; }
+  .exo-main { width: 100%; max-width: 1440px; margin-inline: auto; }
+  .exo-page-header { padding-block: .35rem 1.3rem; border-bottom: 1px solid var(--exo-border); }
+  .exo-page-header h1 { letter-spacing: -.035em; line-height: 1.2; overflow-wrap: anywhere; }
+  .exo-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem; }
+  .exo-section-heading h2 { font-size: 1rem; font-weight: 750; letter-spacing: -.015em; }
+  .exo-kicker { font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .1em; color: var(--exo-muted); }
+  .exo-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem; border-radius: 2rem; background: color-mix(in srgb, currentColor 9%, transparent); font-size: .75rem; font-weight: 650; }
+  .exo-welcome { position: relative; overflow: hidden; background: linear-gradient(115deg, var(--exo-card), var(--exo-primary-soft)); }
+  .exo-welcome h2 { font-size: clamp(1.3rem, 3vw, 1.85rem); font-weight: 800; letter-spacing: -.035em; }
+  .exo-stat { position: relative; overflow: hidden; }
+  .exo-stat::before { content: ''; position: absolute; top: 0; left: 1.25rem; right: 1.25rem; height: 3px; background: currentColor; opacity: .5; border-radius: 0 0 .3rem .3rem; }
+  .exo-stat-value { margin-top: .8rem; font-size: clamp(1.8rem, 3vw, 2.25rem); font-weight: 800; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .exo-stat-description { display: block; margin-top: .7rem; font-size: .72rem; color: var(--exo-muted); }
+  .exo-step { display: flex; gap: .75rem; align-items: flex-start; padding: 1rem; border: 1px solid var(--exo-border); border-radius: .75rem; background: var(--exo-card); }
+  .exo-step-number { display: grid; place-items: center; flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--exo-primary-soft); color: var(--exo-primary); font-size: .75rem; font-weight: 750; }
+  .exo-fieldset { border-top: 1px solid var(--exo-border); margin-top: 1.5rem; padding-top: 1.3rem; min-width: 0; }
+  .exo-fieldset legend { padding-right: .75rem; font-weight: 750; }
+  .exo-form-grid { display: grid; gap: 1.2rem; }
+  .exo-fieldset label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 650; }
+  .exo-fieldset input:not([type="checkbox"]):not([type="hidden"]), .exo-fieldset select, .exo-fieldset textarea { display: block; width: 100%; background: var(--exo-card); color: var(--exo-text); border: 1px solid var(--exo-border); border-radius: var(--radius-control); padding: .7rem .8rem; }
+  .exo-fieldset .help-text, .exo-fieldset .help, .exo-fieldset p { font-size: .8rem; line-height: 1.6; color: var(--exo-muted); }
+  .exo-fieldset ul { color: var(--exo-danger); font-size: .875rem; }
+  .exo-fieldset input[type="checkbox"] { accent-color: #7960A6; width: 1rem; height: 1rem; margin-right: .5rem; }
+  .exo-input { min-height: 2.75rem; }
+  .exo-btn { min-height: 2.75rem; font-size: .875rem; transition: background-color .15s, box-shadow .15s; }
+  .exo-btn:active { transform: translateY(1px); }
+  .exo-btn:disabled { cursor: wait; opacity: .65; }
+  .exo-main table { font-size: .825rem; border-collapse: separate; border-spacing: 0; }
+  .exo-main thead { background: var(--exo-background); }
+  .exo-main th { padding: .85rem; font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .045em; color: var(--exo-muted); white-space: nowrap; }
+  .exo-main td { padding: 1rem .85rem; vertical-align: top; font-variant-numeric: tabular-nums; }
+  .exo-main tbody tr:hover { background: color-mix(in srgb, var(--exo-primary) 3%, transparent); }
+  .exo-filter-bar { display: grid; gap: 1rem; align-items: end; padding: 1rem; background: var(--exo-background); border-radius: .8rem; }
+  .exo-filter-bar label { margin-bottom: .4rem; font-size: .75rem; font-weight: 650; color: var(--exo-muted); }
+  .exo-flash { border-left: 3px solid currentColor; font-size: .875rem; }
+  @media (min-width: 768px) {
+    .exo-sidebar { position: sticky; top: 0; height: 100dvh; }
+    .exo-nav-list { flex-direction: column; }
+    .exo-sidebar-footer { margin-top: auto; }
+    .exo-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .exo-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1280px) {
+    .exo-filter-bar { grid-template-columns: minmax(10rem, 1.5fr) repeat(3, minmax(7rem, 1fr)) auto; }
+  }
+  @media (max-width: 767px) {
+    .exo-brand { margin-bottom: 1.2rem; }
+    .exo-sidebar-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .exo-session { margin: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .exo-nav, .exo-btn { transition: none; }
+    .exo-btn:active { transform: none; }
+  }
+}
