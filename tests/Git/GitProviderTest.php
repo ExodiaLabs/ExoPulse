@@ -137,6 +137,34 @@ final class GitProviderTest extends TestCase
         }
     }
 
+    public function testGithubPermissionRefusalDoesNotBecomeQuotaRetry(): void
+    {
+        $reset = (string) (time() + 600);
+        $api = new GitApi(new MockHttpClient(new MockResponse('permission denied', ['http_code' => 403, 'response_headers' => ['X-RateLimit-Remaining: 42', 'X-RateLimit-Reset: '.$reset]])), new GitEndpointPolicy('api.github.com', ''), 'https://api.github.com', []);
+        try {
+            $api->request('/user');
+            self::fail('Expected permission refusal');
+        } catch (ProviderException $error) {
+            self::assertSame(403, $error->status);
+            self::assertNull($error->retryAfter);
+        }
+    }
+
+    public function testGithubExhaustedQuotaProvidesResetDelay(): void
+    {
+        $reset = (string) (time() + 600);
+        $api = new GitApi(new MockHttpClient(new MockResponse('quota exceeded', ['http_code' => 403, 'response_headers' => ['X-RateLimit-Remaining: 0', 'X-RateLimit-Reset: '.$reset]])), new GitEndpointPolicy('api.github.com', ''), 'https://api.github.com', []);
+        try {
+            $api->request('/user');
+            self::fail('Expected exhausted quota');
+        } catch (ProviderException $error) {
+            self::assertSame(403, $error->status);
+            self::assertNotNull($error->retryAfter);
+            self::assertGreaterThan(0, $error->retryAfter);
+            self::assertLessThanOrEqual(600, $error->retryAfter);
+        }
+    }
+
     public function testNetworkErrorsAreSanitizedWithoutPreviousException(): void
     {
         $client = new MockHttpClient(static function (): never { throw new \RuntimeException('https://secret-token@host'); });
