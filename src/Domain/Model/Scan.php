@@ -8,10 +8,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'scan')]
 #[ORM\Index(name: 'scan_repository_created', columns: ['repository_id', 'created_at'])]
 class Scan
 {
+    use TracksChanges;
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     public string $id;
@@ -55,5 +57,6 @@ class Scan
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 }

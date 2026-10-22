@@ -8,11 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'finding')]
 #[ORM\UniqueConstraint(name: 'finding_identity', columns: ['repository_id', 'fingerprint'])]
 #[ORM\Index(name: 'finding_severity', columns: ['severity', 'resolved_at'])]
 class Finding
 {
+    use TracksChanges;
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     public string $id;
@@ -53,5 +55,6 @@ class Finding
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 }

@@ -8,10 +8,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'issue_tracking')]
 #[ORM\UniqueConstraint(name: 'issue_deduplication', columns: ['repository_id', 'fingerprint'])]
 class IssueTracking
 {
+    use TracksChanges;
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     public string $id;
@@ -45,9 +47,13 @@ class IssueTracking
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     public ?\DateTimeImmutable $lastSyncedAt = null;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    public ?\DateTimeImmutable $nextRefreshAt = null;
+
     public function __construct()
     {
         $this->id = Uuid::v7()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 }
