@@ -7,6 +7,7 @@
 {% if is_granted('ROLE_ADMIN') %}<input type="checkbox" name="findings[]" value="{{ finding.id }}" class="mt-1">{% endif %}
 <span>
 <strong>{{ finding.title }}</strong>
+<span class="mt-2 flex flex-wrap gap-2"><span class="exo-badge {{ finding.severity == 'critical' ? 'text-danger' : (finding.severity == 'warning' ? 'text-warning' : 'text-muted') }}">{{ {critical:'Critique',warning:'Avertissement',info:'Information'}[finding.severity]|default(finding.severity) }}</span>{% if finding.details.confidence|default(0) > 0 %}<span class="exo-badge text-muted">{{ finding.details.confidence >= 100 ? 'Confirmé' : 'Estimé' }} · {{ finding.details.confidence }} %</span>{% endif %}</span>
 <span class="mt-1 block text-sm text-muted">{{ finding.repository.name }} · {{ finding.type }} · {{ finding.severity }}</span>
 </span>
 </label>

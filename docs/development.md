@@ -35,3 +35,5 @@ Voir aussi [l’interface mobile](mobile-layout.md) pour les breakpoints, la nav
 Suivre [AGENTS.md](../AGENTS.md). Les PR empilées déclarent leur base et ne sont pas fusionnées automatiquement. Les contrôles locaux ne prouvent ni disponibilité des API Git ni qualité visuelle sur navigateur.
 
 Voir [validation exécutée](validation.md) pour le parcours HTTP, le worker séparé et les limites des contrôles navigateur et fournisseur.
+
+Le [diagnostic legacy](legacy-detection.md), le [modèle de lecture du patrimoine](technical-portfolio.md) et les [filtres techniques](technical-estate-ui.md) distinguent les risques établis du score global.

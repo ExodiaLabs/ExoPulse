@@ -1,0 +1,15 @@
+# Lire le patrimoine technique
+
+Le catalogue permet de combiner une connexion, un langage, un framework, une technologie et une version observée avec les filtres de risque et de legacy. La saisie d’une version utilise le même envoi différé que la recherche ; les listes déclenchent le filtrage immédiatement. Le formulaire reste utilisable sans JavaScript avec son bouton de recherche.
+
+Le score de santé, sa fraîcheur, la couverture et la confiance restent séparés du diagnostic d’obsolescence. Un score indisponible ne signifie ni absence de risque ni score nul. Les colonnes de risque et de legacy affichent les qualifications du moteur, y compris les informations inconnues ou les analyses partielles. Les tris par criticité, ancienneté des constats et urgence facilitent la préparation des migrations.
+
+Le tableau de bord met en premier les projets distincts inventoriés, le legacy confirmé ou suspecté, les technologies hors support et les dépendances obsolètes. Les scores disponibles figurent dans un résumé secondaire : zéro score critique ne signifie pas zéro application hors support. Le legacy confirmé couvre les frameworks et les composants structurants confirmés hors support. Le tableau de bord compte des applications distinctes pour chaque indicateur technique. Les catégories peuvent se recouper. « Maintenance active terminée » signifie qu’un constat de fin de maintenance existe ; ce n’est ni l’âge du scan ni nécessairement une fin de support de sécurité. L’inventaire des technologies compte chaque application une fois par technologie.
+
+Le détail d’une application présente les motifs de priorité, les premiers constats, leur ancienneté et la dernière vérification disponible. Les constats actifs restent la source des recommandations et de la préparation manuelle des issues. Une obsolescence ne constitue pas une vulnérabilité confirmée.
+
+La page des dépendances distingue la contrainte déclarée de la version résolue dans les fichiers du repository. Aucune ne prouve la version déployée en production. Les dates de maintenance et de support, leur provenance, leur précision et la confiance sont affichées lorsqu’elles sont disponibles. Une date connue seulement au mois est représentée en fin de mois et explicitement signalée. Une information absente reste inconnue ; elle ne vaut pas confirmation de support.
+
+## Organisation technique
+
+Le composant Twig `components/technical_diagnostic.html.twig` est partagé entre le catalogue, les priorités et les détails. Il consomme le diagnostic calculé côté serveur sans recalculer de risque dans les vues. Les filtres utilisent les routes Twig et les cadres Turbo existants, sans nouvel endpoint ni dépendance frontend. Les maquettes et le thème Exodia de référence restent inchangés.

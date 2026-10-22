@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
   queue(event) {
-    if (!event.isComposing && event.target.matches('input[type="search"], input[name="q"], input[name="type"]')) {
+    if (!event.isComposing && event.target.matches('input[type="search"], input[name="q"], input[name="type"], input[name="version"]')) {
       clearTimeout(this.timer);
       this.timer = setTimeout(() => this.element.requestSubmit(), 400);
     }

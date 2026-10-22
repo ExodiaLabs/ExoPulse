@@ -4,7 +4,8 @@
 <tr>
 <th class="p-3">Application</th>
 <th class="p-3">Connexion</th>
-<th class="p-3">Santé</th>
+<th class="p-3">Score de santé</th>
+<th class="p-3">Obsolescence / risque</th>
 <th class="p-3">Confiance / couverture</th>
 <th class="p-3">Dernière analyse</th>
 </tr>
@@ -21,12 +22,13 @@
 <td class="p-3">{{ repository.connection.name }}</td>
 <td class="p-3">
 {% include 'components/score.html.twig' with {score:repository.latestScore,stale:analysis_is_stale(repository.lastScanAt)} only %}</td>
+<td class="p-3">{% include 'components/technical_diagnostic.html.twig' with {diagnostic:diagnostics[repository.id]|default(null),compact:true} only %}</td>
 <td class="p-3">{{ repository.confidence }} % / {{ repository.coverage }} %</td>
 <td class="p-3">{{ repository.lastScanAt ? repository.lastScanAt|date('d/m/Y H:i') : 'Jamais analysé' }}</td>
 </tr>
 {% else %}
 <tr>
-<td colspan="5" class="p-6 text-muted">Aucune application ne correspond aux critères.</td>
+<td colspan="6" class="p-6 text-muted">Aucune application ne correspond aux critères.</td>
 </tr>
 {% endfor %}</tbody>
 </table>
