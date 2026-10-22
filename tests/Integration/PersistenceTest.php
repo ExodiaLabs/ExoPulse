@@ -7,30 +7,9 @@ namespace App\Tests\Integration;
 use App\Domain\Model\ProviderConnection;
 use App\Domain\Model\Repository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class PersistenceTest extends KernelTestCase
+final class PersistenceTest extends DatabaseTestCase
 {
-    private EntityManagerInterface $em;
-
-    protected function setUp(): void
-    {
-        self::bootKernel();
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-        self::assertInstanceOf(EntityManagerInterface::class, $em);
-        $this->em = $em;
-        $this->em->getConnection()->beginTransaction();
-    }
-
-    protected function tearDown(): void
-    {
-        if ($this->em->getConnection()->isTransactionActive()) {
-            $this->em->getConnection()->rollBack();
-        }
-        parent::tearDown();
-    }
-
     public function testExternalIdentifiersAreScopedToTheirConnection(): void
     {
         foreach (['GitHub public', 'GitHub entreprise'] as $name) {
