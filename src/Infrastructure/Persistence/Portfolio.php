@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence;
 
+use App\Application\Service\ConfigurationStore;
 use App\Domain\Model\Finding;
 use App\Domain\Model\Repository;
 use App\Domain\Model\Scan;
@@ -11,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class Portfolio
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em, private ?ConfigurationStore $configuration = null)
     {
     }
 
@@ -25,9 +26,12 @@ final readonly class Portfolio
         if ('' !== $connection) {
             $qb->andWhere('c.id = :connection')->setParameter('connection', $connection);
         }
-        $conditions = ['healthy' => 'r.latestScore >= 80', 'attention' => 'r.latestScore >= 50 AND r.latestScore < 80', 'critical' => 'r.latestScore < 50', 'unknown' => 'r.latestScore IS NULL', 'archived' => 'r.archived = true', 'inaccessible' => 'r.accessible = false'];
+        $conditions = $this->healthConditions() + ['archived' => 'r.archived = true', 'inaccessible' => 'r.accessible = false'];
         if (isset($conditions[$status])) {
             $qb->andWhere($conditions[$status]);
+            if (str_contains($conditions[$status], ':cutoff')) {
+                $qb->setParameter('cutoff', $this->cutoff());
+            }
         }
         $total = (int) (clone $qb)->select('COUNT(r.id)')->getQuery()->getSingleScalarResult();
         $pages = max(1, (int) ceil($total / 25));
@@ -81,8 +85,10 @@ final readonly class Portfolio
     public function stats(): array
     {
         $stats = ['total' => $this->em->getRepository(Repository::class)->count([])];
-        foreach (['healthy' => 'r.latestScore >= 80', 'attention' => 'r.latestScore >= 50 AND r.latestScore < 80', 'critical' => 'r.latestScore < 50', 'unknown' => 'r.latestScore IS NULL'] as $key => $condition) {
-            $stats[$key] = (int) $this->em->createQueryBuilder()->select('COUNT(r.id)')->from(Repository::class, 'r')->where($condition)->getQuery()->getSingleScalarResult();
+        $cutoff = $this->cutoff();
+        foreach ($this->healthConditions() as $key => $condition) {
+            $stats[$key] = (int) $this->em->createQueryBuilder()->select('COUNT(r.id)')->from(Repository::class, 'r')
+                ->where($condition)->setParameter('cutoff', $cutoff)->getQuery()->getSingleScalarResult();
         }
         foreach (['unsupported' => ['end_of_support', 'eol', 'end_of_life', 'unsupported'], 'outdated' => ['outdated', 'major', 'minor', 'patch']] as $key => $types) {
             $stats[$key] = (int) $this->em->createQueryBuilder()->select('COUNT(f.id)')->from(Finding::class, 'f')->where('f.resolvedAt IS NULL')->andWhere('f.type IN (:types)')->setParameter('types', $types)->getQuery()->getSingleScalarResult();
@@ -95,7 +101,7 @@ final readonly class Portfolio
     public function trend(): array
     {
         /** @var list<Scan> $scans */
-        $scans = $this->em->createQueryBuilder()->select('s')->from(Scan::class, 's')->where('s.score IS NOT NULL')->orderBy('s.createdAt', 'DESC')->setMaxResults(1000)->getQuery()->getResult();
+        $scans = $this->em->createQueryBuilder()->select('s')->from(Scan::class, 's')->where('s.score IS NOT NULL')->andWhere("s.status = 'completed'")->orderBy('s.createdAt', 'DESC')->setMaxResults(1000)->getQuery()->getResult();
         $days = [];
         foreach ($scans as $scan) {
             $day = $scan->createdAt->format('Y-m-d');
@@ -109,5 +115,27 @@ final readonly class Portfolio
         }
 
         return $trend;
+    }
+
+    /** @return array<string, string> */
+    private function healthConditions(): array
+    {
+        $fresh = 'r.lastScanAt >= :cutoff';
+        $stale = '(r.lastScanAt IS NULL OR r.lastScanAt < :cutoff)';
+
+        return [
+            'healthy' => 'r.latestScore >= 80 AND '.$fresh,
+            'attention' => 'r.latestScore >= 50 AND r.latestScore < 80 AND '.$fresh,
+            'critical' => 'r.latestScore < 50 AND '.$fresh,
+            'unknown' => '(r.latestScore IS NULL OR '.$stale.')',
+            'stale' => $stale,
+        ];
+    }
+
+    private function cutoff(): \DateTimeImmutable
+    {
+        $days = $this->configuration?->values()['staleDays'] ?? ConfigurationStore::DEFAULTS['staleDays'];
+
+        return new \DateTimeImmutable('-'.max(1, $days).' days');
     }
 }
