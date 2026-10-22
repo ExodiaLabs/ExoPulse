@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+{% block title %}Applications{% endblock %}
+{% block page_title %}Applications et API{% endblock %}
+{% block body %}
+<section class="exo-card p-5">
+<form method="get" class="mb-5 flex flex-wrap items-end gap-3">
+<div>
+<label for="q" class="block text-sm">Rechercher</label>
+<input class="exo-input" id="q" name="q" value="{{ q }}" placeholder="Nom du repository">
+</div>
+<div>
+<label for="status" class="block text-sm">État</label>
+<select class="exo-input" id="status" name="status">
+{% for value,label in {'':'Tous',healthy:'En bonne santé',attention:'À surveiller',critical:'Critiques',unknown:'Non évalués ou périmés',stale:'À actualiser'} %}
+<option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+{% endfor %}</select>
+</div>
+<div>
+<label for="sort" class="block text-sm">Trier par</label>
+<select class="exo-input" id="sort" name="sort">
+{% for value,label in {name:'Nom',score:'Score',lastScanAt:'Dernière analyse'} %}
+<option value="{{ value }}"{% if sort == value %} selected{% endif %}>{{ label }}</option>
+{% endfor %}</select>
+</div>
+<button class="exo-btn">Filtrer</button>
+</form>
+<p class="mb-3 text-sm text-muted">{{ total }} résultat(s)</p>
+{% include 'components/repositories.html.twig' %}{% include 'components/pagination.html.twig' %}</section>
+{% endblock %}
