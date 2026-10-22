@@ -1,0 +1,29 @@
+{% if trend|length %}
+    {% set firstDate = (trend|first).date|date('U') %}
+    {% set lastDate = (trend|last).date|date('U') %}
+    {% set duration = lastDate - firstDate %}
+    {% set coordinates = [] %}
+    {% for point in trend %}
+        {% set x = duration > 0 ? 40 + ((point.date|date('U') - firstDate) / duration) * 480 : 280 %}
+        {% set y = 20 + (100 - min(100, max(0, point.score))) * 1.4 %}
+        {% set coordinates = coordinates|merge([x ~ ',' ~ y]) %}
+    {% endfor %}
+    <svg class="mb-4 h-auto w-full text-primary" viewBox="0 0 560 205" role="img" aria-labelledby="health-trend-title health-trend-description">
+        <title id="health-trend-title">Évolution du score moyen des analyses complètes</title>
+        <desc id="health-trend-description">{{ trend|length }} date(s) observée(s), du {{ (trend|first).date }} au {{ (trend|last).date }}. Échelle de 0 à 100. Les segments relient les observations disponibles ; aucune mesure intermédiaire n’est ajoutée. Les scores et nombres d’analyses figurent aussi sous le graphique.</desc>
+        <text x="3" y="24" fill="var(--exo-muted)" font-size="12">100</text>
+        <text x="18" y="164" fill="var(--exo-muted)" font-size="12">0</text>
+        {% if coordinates|length > 1 %}
+            <polyline points="{{ coordinates|join(' ') }}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        {% endif %}
+        {% for point in trend %}
+            {% set x = duration > 0 ? 40 + ((point.date|date('U') - firstDate) / duration) * 480 : 280 %}
+            {% set y = 20 + (100 - min(100, max(0, point.score))) * 1.4 %}
+            <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="currentColor">
+                <title>{{ point.date }} : {{ point.score }}/100 · {{ point.count }} analyse(s)</title>
+            </circle>
+        {% endfor %}
+        <text x="40" y="193" fill="var(--exo-muted)" font-size="12">{{ (trend|first).date }}</text>
+        {% if duration > 0 %}<text x="520" y="193" text-anchor="end" fill="var(--exo-muted)" font-size="12">{{ (trend|last).date }}</text>{% endif %}
+    </svg>
+{% endif %}
