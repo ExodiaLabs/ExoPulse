@@ -65,6 +65,22 @@ final readonly class Portfolio
         return compact('findings', 'total', 'page', 'pages');
     }
 
+    /** @return array{findings: list<Finding>, total: int, page: int, pages: int} */
+    public function applicationFindings(Repository $repository, int $page = 1): array
+    {
+        $qb = $this->em->createQueryBuilder()->select('f')->from(Finding::class, 'f')
+            ->where('f.repository = :repository')->andWhere('f.resolvedAt IS NULL')->setParameter('repository', $repository);
+        $total = (int) (clone $qb)->select('COUNT(f.id)')->getQuery()->getSingleScalarResult();
+        $pages = max(1, (int) ceil($total / 20));
+        $page = max(1, min($page, $pages));
+        /** @var list<Finding> $findings */
+        $findings = $qb->addSelect("CASE WHEN f.severity = 'critical' THEN 0 WHEN f.severity = 'warning' THEN 1 ELSE 2 END AS HIDDEN priority")
+            ->orderBy('priority')->addOrderBy('f.firstSeenAt')->addOrderBy('f.id')
+            ->setFirstResult(($page - 1) * 20)->setMaxResults(20)->getQuery()->getResult();
+
+        return compact('findings', 'total', 'page', 'pages');
+    }
+
     /** @return array{scans: list<Scan>, total: int, page: int, pages: int} */
     public function scans(?Repository $repository = null, int $page = 1): array
     {

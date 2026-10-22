@@ -13,3 +13,15 @@ La page des dépendances distingue la contrainte déclarée de la version résol
 ## Organisation technique
 
 Le composant Twig `components/technical_diagnostic.html.twig` est partagé entre le catalogue, les priorités et les détails. Il consomme le diagnostic calculé côté serveur sans recalculer de risque dans les vues. Les filtres utilisent les routes Twig et les cadres Turbo existants, sans nouvel endpoint ni dépendance frontend. Les maquettes et le thème Exodia de référence restent inchangés.
+
+## Constats d’une application — évolution du 22 octobre 2026
+
+La fiche application présente les constats actifs sous forme de cartes, avec gravité, type, confiance, versions actuelle/cible et première détection. La provenance reste consultable dans « Source et date de vérification ». Les constats critiques précèdent les avertissements puis les informations.
+
+La liste défile dans une zone dédiée, accessible au clavier. Chaque lot contient au plus 20 constats. Atteindre le bas charge la suite sans effacer les sélections : « Prévisualiser une issue » prend en compte les cases cochées dans tous les lots chargés. Aucune issue n’est créée par le défilement. En cas d’échec, le lien de chargement permet de réessayer. Sans JavaScript, ce lien ouvre le lot suivant ; les sélections ne sont alors pas conservées entre les pages.
+
+### Fonctionnement technique
+
+`GET /applications/{id}?findingsPage=N` conserve l’authentification existante et rend une page HTML complète pour la navigation classique. Avec l’en-tête `Turbo-Frame: findings-page-N`, il renvoie le fragment correspondant. Les frames imbriquées à chargement différé ajoutent chaque lot en conservant les précédents. Les cases utilisent l’association HTML `form` avec le formulaire de prévisualisation ; aucun état sensible n’est stocké dans le navigateur. Le contrôleur Stimulus ne gère que les erreurs et la relance du chargement Turbo.
+
+La requête Doctrine filtre les constats non résolus du seul repository demandé et ordonne par gravité, première détection et UUID. La pagination bornée remplace la limite fixe de 200. Les sources et titres sont échappés par Twig. Si une analyse modifie la liste pendant le défilement, actualiser la fiche pour reprendre une vue cohérente : la pagination ne constitue pas un snapshot transactionnel entre requêtes.

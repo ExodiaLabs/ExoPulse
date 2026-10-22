@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Presentation\Controller;
 
 use App\Application\Service\RequestJobs;
-use App\Domain\Model\Finding;
 use App\Domain\Model\IssueTracking;
 use App\Domain\Model\ProviderConnection;
 use App\Domain\Model\Repository;
@@ -40,13 +39,17 @@ final class ApplicationController extends AbstractController
     }
 
     #[Route('/applications/{id}', name: 'app_application', requirements: ['id' => self::UUID], methods: ['GET'])]
-    public function show(#[MapEntity(id: 'id')] Repository $repository, EntityManagerInterface $em, TechnicalPortfolio $portfolio): Response
+    public function show(#[MapEntity(id: 'id')] Repository $repository, Request $request, EntityManagerInterface $em, TechnicalPortfolio $portfolio, Portfolio $findings): Response
     {
-        return $this->render('applications/show.html.twig', [
+        $batch = $findings->applicationFindings($repository, $request->query->getInt('findingsPage', 1));
+        if ('findings-page-'.$batch['page'] === $request->headers->get('Turbo-Frame')) {
+            return $this->render('applications/_findings_page.html.twig', $batch + ['repository' => $repository]);
+        }
+
+        return $this->render('applications/show.html.twig', $batch + [
             'repository' => $repository,
             'scan' => $repository->latestScan,
             'diagnostic' => $portfolio->diagnosticsFor([$repository->id])[$repository->id] ?? [],
-            'findings' => $em->getRepository(Finding::class)->findBy(['repository' => $repository, 'resolvedAt' => null], ['firstSeenAt' => 'ASC'], 200),
             'issues' => $em->getRepository(IssueTracking::class)->findBy(['repository' => $repository], ['createdAt' => 'DESC'], 100),
         ]);
     }

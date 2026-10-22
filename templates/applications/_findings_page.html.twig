@@ -1,0 +1,18 @@
+<turbo-frame id="findings-page-{{ page }}" class="block">
+    {% for finding in findings %}
+        {% include 'components/finding_card.html.twig' with {finding:finding} only %}
+    {% else %}
+        <p class="p-4 text-sm text-muted">Aucun constat actif. Une absence de constat ne garantit pas l’absence de risque.</p>
+    {% endfor %}
+    {% if page < pages %}
+        {% set next = path('app_application',{id:repository.id,findingsPage:page + 1}) %}
+        <turbo-frame id="findings-page-{{ page + 1 }}" class="block" src="{{ next }}" loading="lazy" data-controller="load-more" data-action="turbo:fetch-request-error->load-more#error turbo:frame-missing->load-more#error">
+            <div class="exo-findings-loader">
+            <p class="mb-3 text-sm text-muted" role="status" data-load-more-target="status">La suite se charge au défilement…</p>
+            <a class="exo-btn exo-btn-alt" href="{{ next }}#findings-page-{{ page + 1 }}" data-action="load-more#retry">Charger les constats suivants</a>
+            </div>
+        </turbo-frame>
+    {% else %}
+        <p class="p-4 text-center text-sm text-muted" role="status">Fin des constats · {{ total }} résultat(s)</p>
+    {% endif %}
+</turbo-frame>

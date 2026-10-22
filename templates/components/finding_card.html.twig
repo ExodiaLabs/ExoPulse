@@ -1,0 +1,23 @@
+{% set tone = finding.severity == 'critical' ? 'text-danger' : (finding.severity == 'warning' ? 'text-warning' : 'text-muted') %}
+{% set types = {end_of_support:'Fin de support',maintenance_ended:'Maintenance terminée',major_update:'Mise à jour majeure',minor_update:'Mise à jour mineure',patch_update:'Correctif disponible',unknown:'Information incomplète'} %}
+<article class="exo-finding-card" aria-labelledby="finding-title-{{ finding.id }}">
+    <div class="flex min-w-0 items-start gap-3">
+        {% if is_granted('ROLE_ADMIN') %}<input class="mt-1 size-5 shrink-0 accent-primary" type="checkbox" form="migration-selection" name="findings[]" value="{{ finding.id }}" id="select-{{ finding.id }}" aria-labelledby="finding-title-{{ finding.id }}">{% endif %}
+        <div class="min-w-0 flex-1">
+            <div class="mb-2 flex flex-wrap gap-2">
+                <span class="exo-badge {{ tone }}">{{ {critical:'Critique',warning:'Avertissement',info:'Information'}[finding.severity]|default(finding.severity) }}</span>
+                <span class="exo-badge text-muted">{{ types[finding.type]|default(finding.type) }}</span>
+                {% if finding.details.confidence|default(0) > 0 %}<span class="exo-badge text-muted">{{ finding.details.confidence >= 100 ? 'Confirmé' : 'Estimé' }} · {{ finding.details.confidence }} %</span>{% endif %}
+            </div>
+            <h3 id="finding-title-{{ finding.id }}" class="font-bold leading-relaxed wrap-anywhere">{% if is_granted('ROLE_ADMIN') %}<label for="select-{{ finding.id }}">{{ finding.title }}</label>{% else %}{{ finding.title }}{% endif %}</h3>
+            <dl class="mt-4 grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+                <div class="min-w-0 rounded-lg bg-surface p-3"><dt class="text-xs text-muted">Version actuelle → cible à valider</dt><dd class="mt-1 font-semibold wrap-anywhere">{{ finding.details.current|default('Inconnue',true) }} → {{ finding.details.target|default('À vérifier',true) }}</dd></div>
+                <div><dt class="text-xs text-muted">Première détection</dt><dd class="mt-1">{{ finding.firstSeenAt ? finding.firstSeenAt|date('d/m/Y') : 'Inconnue' }}</dd>{% if finding.details.eol|default(null) %}<dt class="mt-2 text-xs text-muted">Fin de support</dt><dd class="mt-1 {{ tone }}">{{ finding.details.eol }}</dd>{% endif %}</div>
+            </dl>
+            <details class="mt-3 min-w-0 text-xs text-muted">
+                <summary class="cursor-pointer py-2">Source et date de vérification</summary>
+                <p class="mt-2 leading-relaxed wrap-anywhere">{{ finding.details.source|default('Source indisponible',true) }}<br>{{ finding.details.verifiedAt|default('Date de vérification inconnue',true) }}</p>
+            </details>
+        </div>
+    </div>
+</article>
