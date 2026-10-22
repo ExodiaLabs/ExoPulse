@@ -1,0 +1,66 @@
+name: Quality
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    services:
+      database:
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+        env:
+          POSTGRES_DB: exopulse_test
+          POSTGRES_USER: exopulse
+          POSTGRES_PASSWORD: exopulse
+        ports: [5432:5432]
+        options: --health-cmd="pg_isready -U exopulse -d exopulse_test" --health-interval=5s --health-timeout=3s --health-retries=10
+    env:
+      APP_ENV: test
+      APP_SECRET: ci-only-non-production
+      DATABASE_URL: postgresql://exopulse:exopulse@127.0.0.1:5432/exopulse?serverVersion=17&charset=utf8
+      MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+        with:
+          php-version: '8.4'
+          extensions: intl, pdo_pgsql, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: composer validate --strict
+      - run: php bin/console lint:yaml config
+      - run: php bin/console lint:twig templates
+      - run: php bin/console lint:container
+      - run: php bin/console doctrine:database:create --if-not-exists
+      - run: php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+      - run: php bin/console messenger:setup-transports --no-interaction
+      - run: vendor/bin/phpstan analyse --no-progress
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - run: vendor/bin/phpunit
+      - run: composer audit
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm audit --audit-level=high
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - run: docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:v8.24.3@sha256:e1b35e12a8c6fa8901f060459cfb6b2fc4c484d3afbe3b029733a3bbfab07055 git /repo --redact --no-banner
