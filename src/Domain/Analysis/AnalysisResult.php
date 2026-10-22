@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Analysis;
 
 /**
- * @phpstan-type Technology array{name: string, declared: ?string, resolved: ?string, confidence: int, source: string, eol?: ?string, endOfMaintenance?: ?string, supportSource?: ?string, supportVerifiedAt?: ?string}
+ * @phpstan-type Technology array{name: string, declared: ?string, resolved: ?string, confidence: int, source: string, eol?: ?string, endOfMaintenance?: ?string, supportSource?: ?string, supportVerifiedAt?: ?string, kind?: string, supportStatus?: string, supportConfidence?: int, supportOrigin?: string, supportDatePrecision?: string, supportCycle?: ?string}
  * @phpstan-type Dependency array{ecosystem: string, name: string, declared: ?string, resolved: ?string, direct: bool, latest: ?string, latestCompatible: ?string, updateType: ?string, source: string, verifiedAt: ?string, scope: string}
  * @phpstan-type Finding array{fingerprint: string, type: string, severity: string, title: string, technology: string, current: ?string, target: ?string, source: string, verifiedAt: ?string, eol: ?string, confidence: int}
  */

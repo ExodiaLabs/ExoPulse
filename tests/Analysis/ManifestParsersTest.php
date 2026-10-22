@@ -91,7 +91,7 @@ final class ManifestParsersTest extends TestCase
     {
         $files = ['composer.json' => '{"require":{"php":">=5.3"}}', '.nvmrc' => 'lts/*', '.php-version' => '7.4', 'Dockerfile' => 'FROM node:20-alpine'];
         $technologies = (new RuntimeDetector())->detect($files, []);
-        $runtimes = array_values(array_filter($technologies, static fn (array $technology): bool => in_array($technology['name'], ['PHP', 'Node.js'], true)));
+        $runtimes = array_values(array_filter($technologies, static fn (array $technology): bool => in_array($technology['name'], ['PHP', 'Node.js'], true) && 'language' !== ($technology['kind'] ?? '')));
         self::assertCount(4, $runtimes);
         self::assertContains('lts/*', array_column($runtimes, 'declared'));
         self::assertContains('>=5.3', array_column($runtimes, 'declared'));

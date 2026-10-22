@@ -5,18 +5,30 @@ declare(strict_types=1);
 namespace App\Infrastructure\Registry;
 
 use App\Domain\Analysis\ManifestData;
-use App\Domain\Analysis\SupportCatalog;
+use App\Domain\Analysis\OfflineSupportCatalog;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
-final class LifecycleCatalog implements SupportCatalog
+final class LifecycleCatalog implements OfflineSupportCatalog
 {
-    public function __construct(private readonly CatalogHttpClient $httpClient, private readonly CacheInterface $cache)
+    public function __construct(private readonly CatalogHttpClient $httpClient, private readonly CacheInterface $cache, private readonly BundledLifecycle $bundled = new BundledLifecycle())
     {
+    }
+
+    public function lookupOffline(string $technology, string $version): ?array
+    {
+        return $this->bundled->lookup($technology, $version);
     }
 
     public function lookup(string $technology, string $version): ?array
     {
+        $primary = $this->lookupOffline($technology, $version);
+        if (null !== $primary) {
+            return $primary;
+        }
+        if ('Symfony (composants)' === $technology) {
+            $technology = 'Symfony';
+        }
         $product = match ($technology) {
             'PHP' => 'php',
             'Node.js' => 'nodejs',

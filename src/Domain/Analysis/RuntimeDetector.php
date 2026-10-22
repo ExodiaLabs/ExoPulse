@@ -44,36 +44,64 @@ final class RuntimeDetector
                 $result[] = $this->technology('php' === strtolower($match[1]) ? 'PHP' : 'Node.js', $tag, null, 'Dockerfile', 60);
             }
         }
+        $frameworkCycles = [];
+        foreach ($dependencies as $dependency) {
+            if (in_array($dependency['name'], ['symfony/framework-bundle', 'symfony/symfony'], true)) {
+                $frameworkCycles[$this->cycleKey($dependency)] = true;
+            }
+        }
+        $componentCycles = [];
         foreach ($dependencies as $dependency) {
             $name = match ($dependency['name']) {
                 'symfony/framework-bundle', 'symfony/symfony' => 'Symfony',
                 'react' => 'React',
                 'vue' => 'Vue',
                 'typescript' => 'TypeScript',
-                default => null,
+                default => in_array($dependency['name'], ['symfony/http-kernel', 'symfony/http-foundation', 'symfony/console', 'symfony/routing', 'symfony/dependency-injection', 'symfony/config', 'symfony/event-dispatcher', 'symfony/security-core', 'symfony/security-http', 'symfony/security-bundle', 'symfony/form', 'symfony/validator', 'symfony/serializer', 'symfony/translation', 'symfony/process', 'symfony/cache', 'symfony/filesystem', 'symfony/finder', 'symfony/yaml', 'symfony/twig-bridge', 'symfony/twig-bundle'], true) ? 'Symfony (composants)' : null,
             };
+            if ('Symfony (composants)' === $name) {
+                $cycle = $this->cycleKey($dependency);
+                if (isset($frameworkCycles[$cycle]) || isset($componentCycles[$cycle])) {
+                    continue;
+                }
+                $componentCycles[$cycle] = true;
+            }
             if (null !== $name) {
-                $result[] = $this->technology($name, $dependency['declared'], $dependency['resolved'], $dependency['source'], null !== $dependency['resolved'] ? 100 : 60);
+                $result[] = $this->technology($name, $dependency['declared'], $dependency['resolved'], $dependency['source'].' ('.$dependency['name'].')', null !== $dependency['resolved'] ? 100 : 60, 'Symfony (composants)' === $name ? 'component' : ('TypeScript' === $name ? 'language' : 'framework'));
             }
         }
         if (isset($files['composer.json']) || isset($files['composer.lock'])) {
-            $result[] = $this->technology('Composer', null, null, isset($files['composer.lock']) ? 'composer.lock' : 'composer.json', 100);
+            $result[] = $this->technology('PHP', null, null, isset($files['composer.json']) ? 'composer.json' : 'composer.lock', 60, 'language');
+        }
+        if (isset($files['composer.json']) || isset($files['composer.lock'])) {
+            $result[] = $this->technology('Composer', null, null, isset($files['composer.lock']) ? 'composer.lock' : 'composer.json', 100, 'package_manager');
         }
         foreach (['npm-shrinkwrap.json' => 'npm', 'package-lock.json' => 'npm', 'pnpm-lock.yaml' => 'pnpm', 'yarn.lock' => 'Yarn'] as $file => $name) {
             if (isset($files[$file])) {
-                $result[] = $this->technology($name, null, null, $file, 100);
+                $result[] = $this->technology($name, null, null, $file, 100, 'package_manager');
             }
         }
         if (isset($files['package.json'])) {
-            $result[] = $this->technology('JavaScript', null, null, 'package.json', 100);
+            $result[] = $this->technology('JavaScript', null, null, 'package.json', 60, 'language');
         }
 
         return $result;
     }
 
-    /** @return Technology */
-    private function technology(string $name, ?string $declared, ?string $resolved, string $source, int $confidence): array
+    /** @param Dependency $dependency */
+    private function cycleKey(array $dependency): string
     {
-        return compact('name', 'declared', 'resolved', 'source', 'confidence');
+        $version = $dependency['resolved'] ?? $dependency['declared'] ?? $dependency['name'];
+        if (preg_match('/^v?(\d+\.\d+)(?:\.\d+)?$/', $version, $parts)) {
+            return $parts[1];
+        }
+
+        return $version;
+    }
+
+    /** @return Technology */
+    private function technology(string $name, ?string $declared, ?string $resolved, string $source, int $confidence, string $kind = 'runtime'): array
+    {
+        return compact('name', 'declared', 'resolved', 'source', 'confidence', 'kind');
     }
 }

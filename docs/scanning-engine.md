@@ -19,7 +19,7 @@ flowchart TD
 
 Versions déclarées et résolues ne sont jamais assimilées. `.nvmrc`, `.node-version`, `.php-version`, Dockerfile et contraintes des manifests indiquent des intentions, pas le runtime effectivement déployé. Le verrouillage d’un package confirme sa résolution ; un lock absent conserve une information inconnue.
 
-Les catalogues externes sont désactivés par défaut. Leur activation autorise l’envoi des noms et coordonnées de packages à Packagist/npm ; les calendriers PHP/Node/Symfony/Vue viennent de l’agrégateur communautaire endoflife.date, clairement identifié. Aucune date React n’est inventée. Source et date sont conservées avec chaque résultat.
+Les registres externes sont désactivés par défaut. Le [référentiel EOL local](legacy-detection.md) fournit des preuves historiques sourcées sans requête réseau. L’activation de l’enrichissement autorise l’envoi des noms et coordonnées de packages à Packagist/npm ; pour les cycles absents du référentiel local, les calendriers PHP/Node/Symfony/Vue peuvent provenir de l’agrégateur communautaire endoflife.date, clairement identifié. Les données officielles locales datées prévalent pour les cycles couverts. Aucune date React n’est inventée. Source et date sont conservées avec chaque résultat.
 
 ## Santé
 
