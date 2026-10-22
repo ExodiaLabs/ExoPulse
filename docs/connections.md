@@ -15,3 +15,7 @@ Le test HTTP utilise des identifiants synthétiques et une transaction annulée 
 Le fournisseur et l’URL d’instance sont immuables après création : une autre plateforme exige une nouvelle connexion pour conserver des identifiants externes fiables. La rotation du jeton reste autorisée. Modifier les organisations suspend immédiatement la surveillance des repositories importés jusqu’à une nouvelle découverte. Modifier les motifs d’inclusion ou d’exclusion retire immédiatement les repositories qui ne correspondent plus ; élargir le périmètre requiert aussi une synchronisation pour les réactiver. Toute modification de périmètre remet l’échéance de synchronisation à zéro.
 
 L’édition utilise le même verrou que la synchronisation et une transaction pour enregistrer la configuration, le périmètre et l’audit ensemble. Si une synchronisation est en cours, l’enregistrement est refusé avec un message explicite ; attendez la fin du traitement puis rechargez le formulaire. Aucun changement du formulaire refusé n’est persisté.
+
+## Présentation des formulaires
+
+Les champs restent ceux du formulaire Symfony et sont rendus explicitement dans des fieldsets avec légende et aide associée. `form_end` conserve les champs non rendus et le jeton CSRF. Aucun secret sauvegardé n’est utilisé comme valeur du champ jeton. Les cartes de connexion et tableaux de synchronisation traduisent les statuts connus sans modifier leur valeur persistée ; les états inconnus restent visibles.
